@@ -9,12 +9,9 @@ import { createLogger } from './config/logger.config';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.middleware';
 import { requestLogger } from './middleware/logger.middleware';
 import { requestIdMiddleware } from './middleware/request-id.middleware';
+import { authRoutes } from './routes/public/auth.routes';
+import { authRoutesV1 } from './routes/v1/auth.routes';
 import type { AppEnv } from './types/context.types';
-
-// Import routes (will be implemented in later phases)
-// import { publicRoutes } from "./routes/public";
-// import { v1Routes } from "./routes/v1";
-// import { internalRoutes } from "./routes/internal";
 
 const logger = createLogger({ module: 'server' });
 
@@ -75,13 +72,13 @@ const createApp = () => {
   // ==========================================
 
   // Public routes (no auth required)
-  // app.route("/auth", publicRoutes);
+  app.route('/auth', authRoutes);
 
   // API v1 routes (auth required)
-  // app.route("/v1", v1Routes);
+  app.route('/v1/auth', authRoutesV1);
 
   // Internal routes (health, metrics)
-  // app.route("/internal", internalRoutes);
+  // app.route('/internal', internalRoutes);
 
   // ==========================================
   // Root endpoint
@@ -99,7 +96,10 @@ const createApp = () => {
   // ==========================================
   // Error Handling
   // ==========================================
+  // Endpoint not found
   app.notFound(notFoundHandler);
+
+  // Error handler
   app.onError(errorHandler);
 
   return app;

@@ -5,8 +5,8 @@
  * Services contain business logic and orchestrate between controllers and repositories.
  */
 
-// Export services (to be implemented in later phases)
-// export * as authService from "./auth.service";
+// Export services
+export * as authService from './auth.service';
 // export * as merchantsService from "./merchants.service";
 // export * as suppliersService from "./suppliers.service";
 // export * as ingredientsService from "./ingredients.service";

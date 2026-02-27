@@ -48,10 +48,7 @@ export interface ApiResponse<T> {
   error?: {
     code: string;
     message: string;
-    details?: {
-      field: string;
-      message: string;
-    }[];
+    details?: unknown;
   };
   meta: {
     requestId: string;

@@ -12,8 +12,8 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "noUnusedImports": "error",
-        "noUnusedVariables": "error"
+        "noUnusedImports": "warn",
+        "noUnusedVariables": "warn"
       },
       "suspicious": {
         "noExplicitAny": "warn",
@@ -21,7 +21,8 @@
       },
       "style": {
         "useTemplate": "error",
-        "noNonNullAssertion": "error"
+        "noNonNullAssertion": "error",
+        "useBlockStatements": "warn"
       }
     }
   },

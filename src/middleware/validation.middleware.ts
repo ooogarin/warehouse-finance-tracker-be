@@ -6,30 +6,11 @@ import { validationError } from '@/utils/errors.util';
 
 const logger = createLogger({ module: 'validation-middleware' });
 
-/**
- * Validation target type
- */
+// Validation target type
 type ValidationTarget = 'json' | 'query' | 'param';
 
-/**
- * Create validation middleware
- * Validates request data against a Zod schema
- *
- * Usage:
- * ```typescript
- * const createMerchantSchema = z.object({
- *   name: z.string().min(2),
- *   type: z.string().optional(),
- * });
- *
- * app.post(
- *   "/api/v1/merchants",
- *   authMiddleware,
- *   validate(createMerchantSchema),
- *   merchantsController.create
- * );
- * ```
- */
+// Create validation middleware
+// Validates request data against a Zod schema
 export const validate = <T extends z.ZodType>(schema: T, target: ValidationTarget = 'json') => {
   return createMiddleware<AppEnv>(async (c, next) => {
     let data: unknown;
@@ -74,17 +55,13 @@ export const validate = <T extends z.ZodType>(schema: T, target: ValidationTarge
   });
 };
 
-/**
- * Get validated data from context
- * Must be used after validate middleware
- */
+// Get validated data from context
+// Must be used after validate middleware
 export const getValidatedData = <T>(c: AppContext): T => {
   return c.get('validatedData') as T;
 };
 
-/**
- * Extend Hono context types for validated data
- */
+// Extend Hono context types for validated data
 declare module 'hono' {
   interface ContextVariableMap {
     validatedData: unknown;

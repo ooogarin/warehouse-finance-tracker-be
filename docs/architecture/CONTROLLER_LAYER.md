@@ -10,11 +10,10 @@ The Controller Layer handles **HTTP-specific concerns**. It extracts data from r
 
 ### What It Does
 
-- Extract params from request context
-- Parse and validate request data
+- Extract params from request context that validated by Zod schema
 - Call service methods
 - Format HTTP responses
-- Handle HTTP-specific errors
+- Handle HTTP errors
 
 ### What It Doesn't Do
 
@@ -32,11 +31,7 @@ The Controller Layer handles **HTTP-specific concerns**. It extracts data from r
 src/controllers/
 ├── index.ts                          ← Re-export all controllers
 ├── auth.controller.ts                ← Authentication endpoints
-├── health.controller.ts              ← Health check endpoints
 ├── merchants.controller.ts           ← Merchant CRUD
-├── suppliers.controller.ts           ← Supplier CRUD
-├── ingredients.controller.ts         ← Ingredient management
-├── ingredient-units.controller.ts    ← Unit management
 ├── purchase-orders.controller.ts     ← Purchase Order management
 └── dashboard.controller.ts           ← Dashboard data
 ```
@@ -50,20 +45,20 @@ src/controllers/
 import type { Context } from "hono";
 import * as merchantsService from "@/services/merchants.service";
 import type { AppContext } from "@/types/context.types";
+import type { AppEnv } from '@/types/context.types';
+import { getBody, getQuery, getParams } from '@/utils/hono.util';
 import {
   noContentResponse,
   paginatedResponse,
   successResponse,
 } from "@/utils/response.util";
 
-/**
- * Get all merchants for current user
- *
- * GET /api/v1/merchants
- */
-export const getAll = async (c: Context<AppContext>) => {
+// Get all merchants for current user
+// GET /api/v1/merchants
+export const getAll = async (c: Context<AppEnv>) => {
   const userId = c.get("userId");
-  const query = c.req.query();
+  const query = getQuery<MerchantInputQuery>(c);
+
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 20;
   const search = query.search;
@@ -86,13 +81,10 @@ export const getAll = async (c: Context<AppContext>) => {
   });
 };
 
-/**
- * Get merchant by ID
- *
- * GET /api/v1/merchants/:id
- */
-export const getById = async (c: Context<AppContext>) => {
-  const merchantId = c.req.param("id");
+// Get merchant by ID
+// GET /api/v1/merchants/:id
+export const getById = async (c: Context<AppEnv>) => {
+  const merchantId = getParams<string>(c);
 
   const merchant = await merchantsService.getById(merchantId);
 
@@ -102,14 +94,11 @@ export const getById = async (c: Context<AppContext>) => {
   });
 };
 
-/**
- * Create new merchant
- *
- * POST /api/v1/merchants
- */
+// Create new merchant
+// POST /api/v1/merchants
 export const create = async (c: Context<AppContext>) => {
   const userId = c.get("userId");
-  const data = await c.req.json();
+  const data = getBody<MerchantInputBody>(c);
 
   const merchant = await merchantsService.create(userId, data);
 
@@ -120,14 +109,11 @@ export const create = async (c: Context<AppContext>) => {
   });
 };
 
-/**
- * Update merchant
- *
- * PATCH /api/v1/merchants/:id
- */
-export const update = async (c: Context<AppContext>) => {
-  const merchantId = c.req.param("id");
-  const data = await c.req.json();
+// Update merchant
+// PATCH /api/v1/merchants/:id
+export const update = async (c: Context<AppEnv>) => {
+  const merchantId = getParams<string>(c);
+  const data = getBody<MerchantInputBody>(c);
 
   const merchant = await merchantsService.update(merchantId, data);
 
@@ -137,13 +123,10 @@ export const update = async (c: Context<AppContext>) => {
   });
 };
 
-/**
- * Delete merchant
- *
- * DELETE /api/v1/merchants/:id
- */
-export const delete = async (c: Context<AppContext>) => {
-  const merchantId = c.req.param("id");
+// Delete merchant
+// DELETE /api/v1/merchants/:id
+export const delete = async (c: Context<AppEnv>) => {
+  const merchantId = getParams<string>(c);
 
   await merchantsService.deleteMerchant(merchantId);
 
@@ -180,8 +163,8 @@ export * from "./dashboard.controller";
 
 ```typescript
 // GET /v1/merchants/:id
-export const getById = async (c: Context<AppContext>) => {
-  const merchantId = c.req.param("id"); // String ID
+export const getById = async (c: Context<AppEnv>) => {
+  const merchantId = getParams<string>(c);
   // ...
 };
 ```
@@ -190,9 +173,8 @@ export const getById = async (c: Context<AppContext>) => {
 
 ```typescript
 // GET /v1/merchants?page=1&limit=20&search=test
-export const getAll = async (c: Context<AppContext>) => {
-  // Manual parsing (used in actual code/service layer)
-  const query = c.req.query();
+export const getAll = async (c: Context<AppEnv>) => {
+  const query = getQuery<MerchantInputQuery>(c);
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 20;
   const search = query.search;
@@ -204,9 +186,8 @@ export const getAll = async (c: Context<AppContext>) => {
 
 ```typescript
 // POST /v1/merchants
-export const create = async (c: Context<AppContext>) => {
-  // Raw JSON (validation done in route middleware)
-  const data = await c.req.json();
+export const create = async (c: Context<AppEnv>) => {
+  const data = getBody<MerchantInputBody>(c);
   // ...
 };
 ```
@@ -215,7 +196,7 @@ export const create = async (c: Context<AppContext>) => {
 
 ```typescript
 // Values set by middleware
-export const getAll = async (c: Context<AppContext>) => {
+export const getAll = async (c: Context<AppEnv>) => {
   const userId = c.get("userId"); // From auth middleware
   const merchantId = c.get("merchantId"); // From merchant middleware
   // ...
@@ -227,6 +208,8 @@ export const getAll = async (c: Context<AppContext>) => {
 ## Response Formatting
 
 ### Success Response
+
+Success response is handled by `successResponse` utility function in controller layer.
 
 ```typescript
 // 200 OK with data
@@ -252,6 +235,9 @@ return successResponse({
 ```
 
 ### Failed Response
+
+Failed response is handled by error handler middleware.
+
 
 ```typescript
 // 400 Bad Request
@@ -349,119 +335,63 @@ export const failedResponse = <T>({
 
 ```typescript
 // src/controllers/auth.controller.ts
-import type { Context } from "hono";
-import * as authService from "@/services/auth.service";
-import type { AppContext } from "@/types/context.types";
-import { successResponse } from "@/utils/response.util";
 
-export const login = async (c: Context<AppContext>) => {
-  const { email, password } = await c.req.json();
+import type { Context } from 'hono';
+import * as authService from '@/services/auth.service';
+import type { ChangePasswordInput, LoginInput, RegisterInput, UpdateProfileInput } from '@/types/auth.types';
+import type { AppEnv } from '@/types/context.types';
+import { getBody } from '@/utils/hono.util';
+import { successResponse } from '@/utils/response.util';
 
-  const result = await authService.login(email, password);
-
-  return successResponse({
-    context: c,
-    data: result,
-  });
-};
-
-export const register = async (c: Context<AppContext>) => {
-  const data = await c.req.json();
+// Register new user
+// POST /auth/register
+export const register = async (c: Context<AppEnv>) => {
+  const data = getBody<RegisterInput>(c);
 
   const result = await authService.register(data);
 
   return successResponse({
     context: c,
     data: result,
+    message: 'Registration successful',
     statusCode: 201,
   });
 };
-```
 
-### Purchase Orders Controller
+// Login user
+// POST /auth/login
+export const login = async (c: Context<AppEnv>) => {
+  const data = getBody<LoginInput>(c);
 
-```typescript
-// src/controllers/purchase-orders.controller.ts
-import type { Context } from "hono";
-import * as purchaseOrdersService from "@/services/purchase-orders.service";
-import type { AppContext } from "@/types/context.types";
-import { successResponse } from "@/utils/response.util";
-
-export const getAll = async (c: Context<AppContext>) => {
-  const merchantId = c.get("merchantId");
-
-  const result = await purchaseOrdersService.getAll(merchantId);
+  const result = await authService.login(data);
 
   return successResponse({
     context: c,
     data: result,
-    pagination: {
-      page: 1,
-      limit: result.limit,
-      total: result.total,
-    },
+    message: 'Login successful',
   });
 };
 
-export const getById = async (c: Context<AppContext>) => {
-  const id = c.req.param("id");
-  const merchantId = c.get("merchantId");
+// Get current user profile
+// GET /v1/auth/me
+export const getMe = async (c: Context<AppEnv>) => {
+  const userId = c.get('userId');
 
-  const order = await purchaseOrdersService.getById(id, merchantId);
+  const result = await authService.getMe(userId);
 
   return successResponse({
     context: c,
-    data: order,
-  });
-};
-
-export const create = async (c: Context<AppContext>) => {
-  const merchantId = c.get("merchantId");
-  const userId = c.get("userId");
-  const data = await c.req.json();
-
-  const order = await purchaseOrdersService.create(merchantId, data, userId);
-
-  return successResponse({
-    context: c,
-    data: {
-      id: order.id,
-    },
-    statusCode: 201,
+    data: result,
   });
 };
 ```
-
-### Health Controller
-
-```typescript
-// src/controllers/health.controller.ts
-import type { Context } from "hono";
-import { testConnection } from "@/repositories/client";
-
-export const check = async (c: Context) => {
-  return c.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  });
-};
-
-export const checkDatabase = async (c: Context) => {
-  const isConnected = await testConnection();
-
-  return c.json({
-    status: isConnected ? "ok" : "error",
-    database: isConnected ? "connected" : "disconnected",
-    timestamp: new Date().toISOString(),
-  });
-};
-```
-
----
 
 ## Error Handling in Controllers
 
-Controllers don't handle errors directly - the error handler middleware does. Just throw or let errors propagate:
+Controllers don't handle errors directly - the error handler middleware does.
+Just throw or let errors propagate.
+If found error, error will be passed to top level (error handler middleware).
+Error handler middleware will catch and format them, then send response to client.
 
 ```typescript
 // ✅ CORRECT: Let errors propagate
@@ -499,16 +429,20 @@ export const getById = async (c: Context<AppContext>) => {
 ### DO ✅
 
 ```typescript
-// Extract params cleanly
-const merchantId = c.req.param("id");
+// Get context values (from middleware)
 const userId = c.get("userId");
+const merchantId = c.get("merchantId");
+
+// Extract params
+const id = getParams<string>(c);
 
 // Parse query params
-const query = c.req.query();
+const query = getQuery<MerchantInputQuery>(c);
 const page = Number(query.page) || 1;
+const limit = Number(query.limit) || 10;
 
 // Get JSON body
-const data = await c.req.json();
+const data = getBody<MerchantInputBody>(c);
 
 // Delegate to service
 const result = await merchantsService.create(userId, data);

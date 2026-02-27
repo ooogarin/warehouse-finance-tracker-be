@@ -10,10 +10,10 @@ The Repository Layer handles **database operations**. It writes raw SQL queries 
 
 ### What It Does
 
-- Write SQL queries
-- Execute queries
+- Database operations
+- Write and execute SQL queries
 - Parameter binding (via tagged templates)
-- Return raw data
+- Return raw data from database
 - Support transactions
 
 ### What It Doesn't Do
@@ -33,8 +33,6 @@ src/repositories/
 ├── users.repository.ts             ← User data operations
 ├── merchants.repository.ts         ← Merchant data operations
 ├── user-merchants.repository.ts    ← User-Merchant relationships
-├── suppliers.repository.ts         ← Supplier data operations
-├── ingredients.repository.ts       ← Ingredient data operations
 └── ...
 ```
 
@@ -68,17 +66,12 @@ type ReservedSQL = Awaited<ReturnType<typeof sql.reserve>>;
  *   SELECT id, name FROM merchants WHERE id = ${id}
  * `;
  */
-export const query = async <T>(
-  strings: TemplateStringsArray,
-  ...values: unknown[]
-): Promise<T[]> => {
-  const result = await sql<T>(strings, ...values);
+export const query = async <T>(strings: TemplateStringsArray, ...values: unknown[]): Promise<T[]> => {
+  const result = await sql<T[]>(strings, ...values);
   return result ?? [];
 };
 
-/**
- * Start a transaction, returns reserved connection with BEGIN sent.
- */
+// Start a transaction
 export const startTransaction = async (): Promise<ReservedSQL> => {
   const reserved = await sql.reserve();
   try {
@@ -90,12 +83,8 @@ export const startTransaction = async (): Promise<ReservedSQL> => {
   return reserved;
 };
 
-/**
- * Commit transaction and release connection.
- */
-export const commitTransaction = async (
-  connection: ReservedSQL,
-): Promise<void> => {
+// Commit transaction
+export const commitTransaction = async (connection: ReservedSQL): Promise<void> => {
   try {
     await connection`COMMIT`;
   } finally {
@@ -103,12 +92,8 @@ export const commitTransaction = async (
   }
 };
 
-/**
- * Rollback transaction and release connection.
- */
-export const rollbackTransaction = async (
-  connection: ReservedSQL,
-): Promise<void> => {
+// Rollback transaction
+export const rollbackTransaction = async (connection: ReservedSQL): Promise<void> => {
   try {
     await connection`ROLLBACK`;
   } finally {
@@ -131,7 +116,7 @@ export type { SQL, ReservedSQL };
 | `bulkInsert` | Insert multiple records      | `bulkInsert`                   |
 | `update`     | Update record(s)             | `updateById`                   |
 | `softDelete` | Soft delete (set deleted_at) | `softDeleteById`               |
-| `count`      | Count records                | `countAll`                     |
+| `count`      | Count records                | `countAllById`                 |
 | `exists`     | Check existence              | `existsById`                   |
 
 ---
@@ -139,24 +124,28 @@ export type { SQL, ReservedSQL };
 ## Parameter Rules
 
 ### Read Operations
+- 1st parameter: id (optional): ID if mentioned at name
+- 2nd parameter: payload (optional): payload for filter or pagination
 
-| Position | Parameter | Description       |
-| -------- | --------- | ----------------- |
-| 1st      | `id`      | ID or data object |
-| 2nd      | `option`  | Options for query |
+### Insert Operations
+- 1st parameter: connection (transaction or `sql`)
+- 2nd parameter: payload (data object for insert operations)
 
-### Insert/Update Operations
+### Update Operations
+- 1st parameter: connection (transaction or `sql`)
+- 2nd parameter: id (ID for update/delete operations)
+- 3rd parameter: payload (data object for update operations)
 
-| Position | Parameter    | Description                                                  |
-| -------- | ------------ | ------------------------------------------------------------ |
-| 1st      | `connection` | SQL client (transaction or `sql`) for writes; none for reads |
-| 2nd      | `payload`    | Data object for insert/update operations                     |
-| 3rd      | `id`         | ID for update/delete operations                              |
+### Delete Operations
+- 1st parameter: connection (transaction or `sql`)
+- 2nd parameter: id (ID for update/delete operations)
+
 
 ```typescript
 // Read operations - no connection needed
 await repository.getOneById(id);
 await repository.getAllByMerchantId(merchantId);
+await repository.getAllByUserId(userId, payload);
 
 // Write operations - pass connection (transaction)
 await repository.insert(connection, payload);
@@ -174,8 +163,8 @@ await repository.softDeleteById(connection, id);
 - Use LIMIT 1 for clarity that is only one record
 
 ```typescript
-export const getOneById = async (id: string): Promise<Merchant | null> => {
-  const [result] = await query<Merchant>`
+export const getOneById = async (id: string): Promise<MerchantDbRow | null> => {
+  const [result] = await query<MerchantDbRow>`
     SELECT
       id,
       name,
@@ -198,8 +187,8 @@ export const getOneById = async (id: string): Promise<Merchant | null> => {
 - Always return array with records or empty array
 
 ```typescript
-export const getAll = async (): Promise<Merchant[]> => {
-  const result = await query<Merchant>`
+export const getAll = async (): Promise<MerchantDbRow[]> => {
+  const result = await query<MerchantDbRow>`
     SELECT
       id,
       name,
@@ -221,8 +210,8 @@ export const getAll = async (): Promise<Merchant[]> => {
 - Parameterized queries are safe to use, no SQL injection
 
 ```typescript
-export const getByType = async (type: string): Promise<Merchant[]> => {
-  const result = await query<Merchant>`
+export const getByType = async (type: string): Promise<MerchantDbRow[]> => {
+  const result = await query<MerchantDbRow>`
     SELECT
       id,
       name,
@@ -245,12 +234,12 @@ export const getByType = async (type: string): Promise<Merchant[]> => {
 - Parameterized queries are safe to use, no SQL injection
 
 ```typescript
-export const getByIds = async (ids: string[]): Promise<Merchant[]> => {
+export const getByIds = async (ids: string[]): Promise<MerchantDbRow[]> => {
   if (ids.length === 0) {
     return [];
   }
 
-  const result = await query<Merchant>`
+  const result = await query<MerchantDbRow>`
     SELECT
       id,
       name,
@@ -268,8 +257,6 @@ export const getByIds = async (ids: string[]): Promise<Merchant[]> => {
 };
 ```
 
-<!-- TODO -->
-
 ### READ - Conditional Queries (Search/Filter)
 
 ```typescript
@@ -278,12 +265,12 @@ import { sql, query } from "./client";
 export const getAllByUserId = async (
   userId: string,
   filters: { search?: string; limit: number; offset: number },
-): Promise<Merchant[]> => {
+): Promise<MerchantDbRow[]> => {
   const searchPattern = filters.search
     ? sql`AND m.name ILIKE %${filters.search}%`
     : sql``;
 
-  return await query<Merchant>`
+  return await query<MerchantDbRow>`
     SELECT DISTINCT 
       m.id, m.name, m.type, m.address, m.phone, m.cash_balance, 
       m.created_at, m.updated_at
@@ -307,17 +294,10 @@ import { sql, type ReservedSQL } from "./client";
 export const insert = async (
   connection: ReservedSQL,
   payload: MerchantDbInsertPayload,
-): Promise<Merchant> => {
-  const allowedColumns = [
-    "id",
-    "name",
-    "type",
-    "address",
-    "phone",
-    "cash_balance",
-  ] as const;
+): Promise<MerchantDbRow> => {
+  const allowedColumns = ["id", "name", "type", "address", "phone", "cash_balance"] as const;
 
-  const [result] = await connection<Merchant[]>`
+  const [result] = await connection<MerchantDbRow[]>`
     INSERT INTO merchants ${sql(payload, ...allowedColumns)}
     RETURNING id, name, type, address, phone, cash_balance, created_at, updated_at, deleted_at
   `;
@@ -348,19 +328,14 @@ import { sql, type ReservedSQL } from "./client";
 export const bulkInsert = async (
   connection: ReservedSQL,
   payloads: MerchantDbInsertPayload[],
-): Promise<Merchant[]> => {
-  if (payloads.length === 0) return [];
+): Promise<MerchantDbRow[]> => {
+  if (payloads.length === 0) {
+    return [];
+  }
 
-  const allowedColumns = [
-    "id",
-    "name",
-    "type",
-    "address",
-    "phone",
-    "cash_balance",
-  ] as const;
+  const allowedColumns = ["id", "name", "type", "address", "phone", "cash_balance"] as const;
 
-  const result = await connection<Merchant[]>`
+  const result = await connection<MerchantDbRow[]>`
     INSERT INTO merchants ${sql(payloads, ...allowedColumns)}
     RETURNING id, name, type, address, phone, cash_balance, created_at, updated_at, deleted_at
   `;
@@ -400,10 +375,10 @@ export const updateById = async (
   connection: ReservedSQL,
   id: string,
   payload: MerchantDbUpdatePayload,
-): Promise<Merchant> => {
+): Promise<MerchantDbRow> => {
   const allowedColumns = ["name", "type", "address", "phone"] as const;
 
-  const [result] = await connection<Merchant[]>`
+  const [result] = await connection<MerchantDbRow[]>`
     UPDATE merchants
     SET
       ${sql(payload, ...allowedColumns)},
@@ -526,6 +501,7 @@ export const createMerchant = async (userId: string, data: CreateData) => {
       phone: data.phone,
       cash_balance: 0,
     };
+    
     // Only insert by specified fields in payload object
     const merchant = await merchantsRepository.insert(connection, payload);
 

@@ -87,12 +87,6 @@ export const recordExists = async (connection: Connection, table: string, condit
   return result.length > 0;
 };
 
-// Generate UUID v4
-// Uses Bun's crypto.randomUUID()
-export const generateUUID = (): string => {
-  return crypto.randomUUID();
-};
-
 // Format date for database (ISO 8601)
 export const formatDate = (date: Date = new Date()): string => {
   return date.toISOString();

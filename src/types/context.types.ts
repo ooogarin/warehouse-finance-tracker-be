@@ -17,16 +17,6 @@ export interface MerchantContext {
   user_role: UserRole;
 }
 
-// JWT payload structure
-export interface JwtPayload {
-  userId: UUID;
-  email: string;
-  role: UserRole;
-  type?: 'access' | 'refresh';
-  iat: number;
-  exp: number;
-}
-
 // Refresh token payload
 export interface RefreshTokenPayload {
   userId: UUID;
@@ -55,8 +45,13 @@ export interface AppVariables {
 }
 
 // App environment type
+// Default In/Out allows zValidator to extend with validation types
 export type AppEnv = {
   Variables: AppVariables;
+  // biome-ignore lint/complexity/noBannedTypes: Required by Hono's Input type
+  in: {};
+  // biome-ignore lint/complexity/noBannedTypes: Required by Hono's Input type
+  out: {};
 };
 
 // Extended Hono context type for the application
