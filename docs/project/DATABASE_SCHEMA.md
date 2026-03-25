@@ -176,12 +176,12 @@ CREATE TABLE ingredients (
     merchant_id UUID NOT NULL,
     name VARCHAR(100) NOT NULL,
     category ingredient_category DEFAULT 'other',
-    base_unit VARCHAR(20) NOT NULL,
+    base_unit VARCHAR(50) NOT NULL,
     stock_quantity DECIMAL(12,3) NOT NULL DEFAULT 0,
     min_stock DECIMAL(12,3) DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMPTZ NULL,
     CONSTRAINT check_stock_positive CHECK (stock_quantity >= 0),
     CONSTRAINT fk_ingredients_merchants FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE RESTRICT
 );
@@ -190,13 +190,15 @@ CREATE TABLE ingredients (
 #### Create Index
 
 ```sql
+CREATE UNIQUE INDEX idx_ingredients_merchant_name_unique
+    ON ingredients(merchant_id, name);
+
 CREATE INDEX idx_ingredients_merchant_category
-    ON ingredients(merchant_id, category)
-    WHERE deleted_at IS NULL;
+    ON ingredients(merchant_id, category);
 
 CREATE INDEX idx_ingredients_merchant_stock
     ON ingredients(merchant_id, stock_quantity)
-    WHERE deleted_at IS NULL AND stock_quantity <= min_stock;
+    WHERE stock_quantity <= min_stock;
 
 ```
 
@@ -214,9 +216,9 @@ CREATE TABLE ingredient_units (
     conversion_factor DECIMAL(12,3) NOT NULL,
     is_default BOOLEAN DEFAULT false,
     description VARCHAR(200),
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMPTZ NULL,
     CONSTRAINT unique_ingredient_unit UNIQUE(ingredient_id, unit_name),
     CONSTRAINT check_conversion_positive CHECK (conversion_factor > 0),
     CONSTRAINT fk_ingredient_units_ingredients FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE RESTRICT
@@ -226,6 +228,9 @@ CREATE TABLE ingredient_units (
 #### Create Index
 
 ```sql
+CREATE UNIQUE INDEX idx_ingredient_units_merchant_name_unique
+    ON ingredient_units(ingredient_id, unit_name);
+
 CREATE INDEX idx_ingredient_units_ingredient_id
     ON ingredient_units(ingredient_id)
     WHERE deleted_at IS NULL;
@@ -277,7 +282,7 @@ CREATE TABLE purchase_orders (
     merchant_id UUID NOT NULL,
     supplier_id UUID,
     purchase_date TIMESTAMPTZ NOT NULL,
-    invoice_number VARCHAR(50),
+    invoice_number VARCHAR(50) NOT NULL,
     total_amount DECIMAL(15,3) NOT NULL,
     paid_cash DECIMAL(15,3) NOT NULL DEFAULT 0,
     paid_owner DECIMAL(15,3) NOT NULL DEFAULT 0,
@@ -303,6 +308,10 @@ CREATE INDEX idx_purchase_orders_merchant_date
     ON purchase_orders(merchant_id, purchase_date DESC)
     WHERE deleted_at IS NULL;
 
+CREATE INDEX idx_purchase_orders_merchant_invoice
+    ON purchase_orders(merchant_id, invoice_number)
+    WHERE deleted_at IS NULL;
+
 CREATE INDEX idx_purchase_orders_merchant_supplier_date
     ON purchase_orders(merchant_id, supplier_id, purchase_date DESC)
     WHERE deleted_at IS NULL;
@@ -310,12 +319,12 @@ CREATE INDEX idx_purchase_orders_merchant_supplier_date
 
 ---
 
-### `purchase_items`
+### `purchase_order_items`
 
 #### Create Table
 
 ```sql
-CREATE TABLE purchase_items (
+CREATE TABLE purchase_order_items (
     id UUID PRIMARY KEY,
     purchase_order_id UUID NOT NULL,
     ingredient_id UUID NOT NULL,
@@ -329,9 +338,9 @@ CREATE TABLE purchase_items (
     deleted_at TIMESTAMPTZ NULL,
     CONSTRAINT check_quantity_positive CHECK (quantity > 0),
     CONSTRAINT check_price_positive CHECK (unit_price >= 0),
-    CONSTRAINT fk_purchase_items_purchase_orders FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id) ON DELETE RESTRICT,
-    CONSTRAINT fk_purchase_items_ingredients FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE RESTRICT,
-    CONSTRAINT fk_purchase_items_ingredient_units FOREIGN KEY (ingredient_unit_id) REFERENCES ingredient_units(id) ON DELETE RESTRICT
+    CONSTRAINT fk_purchase_order_items_purchase_orders FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_purchase_order_items_ingredients FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_purchase_order_items_ingredient_units FOREIGN KEY (ingredient_unit_id) REFERENCES ingredient_units(id) ON DELETE RESTRICT
 );
 
 ```
@@ -339,16 +348,173 @@ CREATE TABLE purchase_items (
 #### Create Index
 
 ```sql
-CREATE INDEX idx_purchase_items_purchase_order_id
-    ON purchase_items(purchase_order_id)
+CREATE INDEX idx_purchase_order_items_purchase_order_id
+    ON purchase_order_items(purchase_order_id)
     WHERE deleted_at IS NULL;
 
-CREATE INDEX idx_purchase_items_ingredient_id
-    ON purchase_items(ingredient_id)
+CREATE INDEX idx_purchase_order_items_ingredient_id
+    ON purchase_order_items(ingredient_id)
     WHERE deleted_at IS NULL;
 
-CREATE INDEX idx_purchase_items_purchase_order_ingredient
-    ON purchase_items(purchase_order_id, ingredient_id)
+CREATE INDEX idx_purchase_order_items_purchase_order_ingredient
+    ON purchase_order_items(purchase_order_id, ingredient_id)
+    WHERE deleted_at IS NULL;
+```
+
+---
+
+### `stock_usages`
+
+#### Create Type
+
+```sql
+CREATE TYPE stock_usage_type AS ENUM (
+    'usage',      -- Barang dipakai
+    'waste'       -- Barang rusak/expired
+);
+```
+
+#### Create Table
+
+```sql
+CREATE TABLE stock_usages (
+    id UUID PRIMARY KEY,
+    merchant_id UUID NOT NULL,
+    type stock_usage_type NOT NULL,
+    usage_date TIMESTAMPTZ NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ NULL,
+    CONSTRAINT fk_stock_usages_merchants FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE RESTRICT
+);
+
+```
+
+#### Create Index
+
+```sql
+CREATE INDEX idx_stock_usages_merchant_date
+    ON stock_usages(merchant_id, usage_date DESC)
+    WHERE deleted_at IS NULL;
+```
+
+---
+
+### `stock_usage_items`
+
+#### Create Table
+
+```sql
+CREATE TABLE stock_usage_items (
+    id UUID PRIMARY KEY,
+    stock_usage_id UUID NOT NULL,
+    ingredient_id UUID NOT NULL,
+    quantity DECIMAL(12,3) NOT NULL,
+    ingredient_unit_id UUID NOT NULL,
+    unit_price DECIMAL(15,3) NOT NULL,
+    subtotal DECIMAL(15,3) GENERATED ALWAYS AS (quantity * unit_price) STORED,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ NULL,
+    CONSTRAINT check_quantity_positive CHECK (quantity > 0),
+    CONSTRAINT check_price_positive CHECK (unit_price >= 0),
+    CONSTRAINT fk_stock_usage_items_stock_usages FOREIGN KEY (stock_usage_id) REFERENCES stock_usages(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_stock_usage_items_ingredients FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_stock_usage_items_ingredient_units FOREIGN KEY (ingredient_unit_id) REFERENCES ingredient_units(id) ON DELETE RESTRICT
+);
+
+```
+
+#### Create Index
+
+```sql
+CREATE INDEX idx_stock_usage_items_stock_usage_id
+    ON stock_usage_items(stock_usage_id)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_stock_usage_items_ingredient_id
+    ON stock_usage_items(ingredient_id)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_stock_usage_items_stock_usage_ingredient
+    ON stock_usage_items(stock_usage_id, ingredient_id)
+    WHERE deleted_at IS NULL;
+```
+
+---
+
+### `stock_adjustments`
+
+#### Create Table
+```sql
+CREATE TABLE stock_adjustments (
+    id UUID PRIMARY KEY,
+    merchant_id UUID NOT NULL,
+    adjustment_date TIMESTAMPTZ NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ NULL,
+    CONSTRAINT fk_stock_adjustments_merchants FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE RESTRICT
+);
+```
+
+#### Create Index
+```sql
+CREATE INDEX idx_stock_adjustments_merchant_date
+    ON stock_adjustments(merchant_id, adjustment_date DESC)
+    WHERE deleted_at IS NULL;
+```
+
+---
+
+### `stock_adjustment_items`
+
+#### Create Type
+```sql
+CREATE TYPE stock_adjustment_flow_type AS ENUM (
+    'in',   -- Koreksi tambah (stok fisik lebih dari sistem)
+    'out'   -- Koreksi kurang (stok fisik kurang dari sistem)
+);
+```
+
+#### Create Table
+```sql
+CREATE TABLE stock_adjustment_items (
+    id UUID PRIMARY KEY,
+    stock_adjustment_id UUID NOT NULL,
+    flow_type stock_adjustment_flow_type NOT NULL,
+    ingredient_id UUID NOT NULL,
+    quantity DECIMAL(12,3) NOT NULL,
+    ingredient_unit_id UUID NOT NULL,
+    unit_price DECIMAL(15,3) NOT NULL,
+    subtotal DECIMAL(15,3) GENERATED ALWAYS AS (quantity * unit_price) STORED,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ NULL,
+    CONSTRAINT check_quantity_positive CHECK (quantity > 0),
+    CONSTRAINT check_price_positive CHECK (unit_price >= 0),
+    CONSTRAINT fk_stock_adjustment_items_stock_adjustments FOREIGN KEY (stock_adjustment_id) REFERENCES stock_adjustments(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_stock_adjustment_items_ingredients FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_stock_adjustment_items_ingredient_units FOREIGN KEY (ingredient_unit_id) REFERENCES ingredient_units(id) ON DELETE RESTRICT
+);
+```
+
+#### Create Index
+```sql
+CREATE INDEX idx_stock_adjustment_items_stock_adjustment_id
+    ON stock_adjustment_items(stock_adjustment_id)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_stock_adjustment_items_ingredient_id
+    ON stock_adjustment_items(ingredient_id)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_stock_adjustment_items_stock_adjustment_ingredient
+    ON stock_adjustment_items(stock_adjustment_id, ingredient_id)
     WHERE deleted_at IS NULL;
 ```
 
@@ -361,11 +527,9 @@ CREATE INDEX idx_purchase_items_purchase_order_ingredient
 #### Create Type
 
 ```sql
-CREATE TYPE stock_log_movement_type AS ENUM (
-    'in',           -- Barang MASUK (pembelian)
-    'use',          -- Barang DIPAKAI (masak, dll)
-    'waste',        -- Barang RUSAK/EXPIRED
-    'adjustment'    -- Barang KOREKSI (inventory opname)
+CREATE TYPE stock_log_flow_type AS ENUM (
+    'in',
+    'out'
 );
 ```
 
@@ -389,13 +553,12 @@ CREATE TYPE stock_log_reference_type AS ENUM (
 CREATE TABLE stock_logs (
     id UUID PRIMARY KEY,
     ingredient_id UUID NOT NULL,
-    movement_type stock_log_movement_type NOT NULL,
+    flow_type stock_log_flow_type NOT NULL,
     reference_type stock_log_reference_type NOT NULL,
     reference_id UUID,
     base_unit_quantity DECIMAL(12,3) NOT NULL,
     base_unit_price DECIMAL(15,3) NOT NULL,
     total_amount DECIMAL(15,3) GENERATED ALWAYS AS (base_unit_quantity * base_unit_price) STORED,
-    reason VARCHAR(100),
     notes TEXT,
     balance_after DECIMAL(15,3),
     created_by UUID,
@@ -411,8 +574,8 @@ CREATE TABLE stock_logs (
 ```sql
 CREATE INDEX idx_stock_logs_ingredient
     ON stock_logs(ingredient_id, created_at DESC);
-CREATE INDEX idx_stock_logs_movement_type
-    ON stock_logs(movement_type);
+CREATE INDEX idx_stock_logs_flow_type
+    ON stock_logs(flow_type);
 CREATE INDEX idx_stock_logs_reference_type
     ON stock_logs(reference_type, reference_id);
 ```
