@@ -29,10 +29,10 @@ ingredients
 
 ingredient_batches
 ├── ingredient_id   → terikat ke ingredient
-├── qty_purchased   → qty saat dibeli
-├── qty_remaining   → sisa qty batch ini
+├── qty_initial     → qty awal saat batch dibuat, immutable
+├── qty_remaining   → sisa qty batch ini, hanya bisa berkurang
 ├── cost_per_unit   → harga per base_unit
-└── purchase_date   → tanggal beli (urutan FIFO)
+└── purchase_date   → tanggal batch dibuat (urutan FIFO)
 
 stock_logs
 ├── ingredient_id       → terikat ke ingredient
@@ -57,7 +57,7 @@ stock_logs
   stock_quantity <= min_stock     → Stok Rendah (kuning)
   stock_quantity > min_stock      → Normal (hijau)
   ```
-- Nilai inventory = sum(`ingredient_batches.qty_remaining × cost_per_unit`) per ingredient
+- Nilai inventory = SUM(`qty_remaining × cost_per_unit`) per batch dari `ingredient_batches`
 - Riwayat pergerakan di Detail diambil dari `stock_logs` — mencakup semua `reference_type`
 
 ---
@@ -95,9 +95,9 @@ Data per row:
 |---|---|---|
 | Nama | `ingredients.name` | Selalu |
 | Kategori | `ingredients.category` | Selalu |
-| Stok Saat Ini | `ingredients.stock_quantity` + unit default dari `ingredient_units` WHERE `is_default = true` AND `is_active = true` | Selalu |
+| Stok Saat Ini | Format human-readable dari `ingredients.stock_quantity` — dikonversi dari `base_unit` ke unit-unit aktif, diurutkan dari unit terbesar (`conversion_factor` DESC). Contoh: *"2 jerigen 2 liter 500 ml"*. Base unit ditampilkan kecil di bawahnya sebagai referensi: *"(= 12.500 ml)"*. Kalkulasi dilakukan di BE. | Selalu |
 | Min Stok | `ingredients.min_stock` + unit default | Selalu |
-| Nilai Inventory | derived: sum(`ingredient_batches.qty_remaining × cost_per_unit`) per batch dari `ingredient_batches` | Selalu |
+| Nilai Inventory | derived: SUM(`qty_remaining × cost_per_unit`) per batch dari `ingredient_batches` | Selalu |
 | Status | derived dari `stock_quantity` vs `min_stock` — badge berwarna | Selalu |
 | Last Updated | `stock_logs.created_at` terbaru untuk ingredient ini | Selalu |
 
@@ -127,56 +127,68 @@ Action per row:
 #### Components
 
 **Section: Info Stok**
+
+> Selalu tampil di atas tabs.
+
 | Field | Source |
 |---|---|
 | Nama | `ingredients.name` |
 | Kategori | `ingredients.category` |
-| Stok Saat Ini | `ingredients.stock_quantity` + unit default |
-| Min Stok | `ingredients.min_stock` + unit default |
+| Stok Saat Ini | Format human-readable dari `ingredients.stock_quantity` — dikonversi dari `base_unit` ke unit-unit aktif, diurutkan dari unit terbesar (`conversion_factor` DESC). Contoh: *"2 jerigen 2 liter 500 ml"*. Base unit ditampilkan kecil di bawahnya sebagai referensi: *"(= 12.500 ml)"*. Kalkulasi dilakukan di BE. |
+| Min Stok | `ingredients.min_stock` dikonversi dengan format yang sama |
 | Status | derived badge (Habis / Stok Rendah / Normal) |
-| Nilai Inventory | derived dari `ingredient_batches` |
+| Nilai Inventory | derived: SUM(`qty_remaining × cost_per_unit`) per batch dari `ingredient_batches` — mencerminkan nilai aktual berdasarkan harga perolehan tiap batch (FIFO) |
 
-**Section: Stok per Unit**
+---
 
-> Kalkulasi qty dalam semua unit aktif milik ingredient ini.
+**Tabs**
 
-| Unit | Konversi | Qty Saat Ini |
-|---|---|---|
-| [unit_name] | [conversion_factor] | stock_quantity / conversion_factor |
+---
 
-Data dari `ingredient_units` WHERE `is_active = true`.
+**Tab 1: Batches (default)**
 
-**Section: FIFO Batches**
-
-> Urut dari `purchase_date` terlama (akan dipakai pertama).
+> Urut dari `purchase_date` terlama (akan dipakai pertama — FIFO).
+> Hanya tampilkan batch dengan `qty_remaining > 0`.
 
 | Field | Source |
 |---|---|
 | Tanggal Beli | `ingredient_batches.purchase_date` |
-| Qty Dibeli | `ingredient_batches.qty_purchased` + base_unit |
+| Qty Awal | `ingredient_batches.qty_initial` + base_unit |
 | Qty Tersisa | `ingredient_batches.qty_remaining` + base_unit |
 | Harga/Unit | `ingredient_batches.cost_per_unit` |
 | Nilai Batch | `qty_remaining × cost_per_unit` `[AUTO]` |
 
-> Hanya tampilkan batch dengan `qty_remaining > 0`.
+**States Tab 1:**
+| State | Tampilan |
+|---|---|
+| Empty | *"Belum ada batch aktif untuk ingredient ini"* |
 
-**Section: Riwayat Pergerakan**
+---
+
+**Tab 2: Riwayat**
 
 > Data dari `stock_logs` WHERE `ingredient_id = [id]`, order by `created_at DESC`.
 
 | Field | Source |
 |---|---|
 | Tanggal | `stock_logs.created_at` |
-| Tipe | derived dari `flow_type` + `reference_type` — contoh: *"Masuk (Pembelian)"*, *"Keluar (Penggunaan)"*, *"Keluar (Waste)"*, *"Masuk (Adjustment)"*, *"Keluar (Adjustment)"* |
+| Tipe | derived dari `flow_type` + `reference_type` — *"Masuk (Pembelian)"* / *"Keluar (Penggunaan)"* / *"Keluar (Waste)"* / *"Masuk (Adjustment)"* / *"Keluar (Adjustment)"* |
 | Qty | `stock_logs.base_unit_quantity` + base_unit |
 | Nilai | `stock_logs.total_amount` |
 | Saldo Setelah | `stock_logs.balance_after` + base_unit |
-| Referensi | link ke detail PO / Usage / Waste / Adjustment berdasarkan `reference_type` + `reference_id` |
+| Referensi | link ke detail transaksi berdasarkan `reference_type` + `reference_id` |
 
 Filter riwayat:
 | Elemen | Type | Behaviour |
 |---|---|---|
 | Filter Tipe | dropdown | All / Pembelian / Penggunaan / Waste / Adjustment |
+
+**States Tab 2:**
+| State | Tampilan |
+|---|---|
+| Empty | *"Belum ada riwayat pergerakan untuk ingredient ini"* |
+
+---
 
 **Actions**
 | Label | Trigger | Behaviour |
@@ -209,7 +221,7 @@ Filter riwayat:
 |---|---|
 | DEV-01 | `stock_quantity` di list dan detail harus selalu real-time — tidak boleh di-cache terlalu lama |
 | DEV-02 | Nilai inventory per ingredient = SUM(`qty_remaining × cost_per_unit`) dari `ingredient_batches` WHERE `ingredient_id` AND `qty_remaining > 0` |
-| DEV-03 | Qty per unit di Section "Stok per Unit" = `ingredients.stock_quantity / ingredient_units.conversion_factor` |
+| DEV-03 | Format human-readable stok dikalkulasi di BE — sort `ingredient_units` by `conversion_factor` DESC, iterasi dari unit terbesar, tampilkan hanya unit dengan qty > 0. Response kembalikan dua field: `stock_quantity_formatted` (contoh: *"2 jerigen 2 liter 500 ml"*) dan `stock_quantity_base` (contoh: *"12.500 ml"*) |
 | DEV-04 | Label tipe di riwayat pergerakan adalah derived dari kombinasi `flow_type` + `reference_type` — mapping: `in+purchase` = *"Masuk (Pembelian)"*, `out+usage` = *"Keluar (Penggunaan)"*, `out+waste` = *"Keluar (Waste)"*, `in+adjustment` = *"Masuk (Adjustment)"*, `out+adjustment` = *"Keluar (Adjustment)"* |
 | DEV-05 | Link referensi di riwayat pergerakan harus resolve ke route yang tepat berdasarkan `reference_type`: purchase → `/purchase-orders/[id]`, usage → `/stock/usage/[id]`, waste → `/stock/waste/[id]`, adjustment → `/stock/adjustment/[id]` |
 
