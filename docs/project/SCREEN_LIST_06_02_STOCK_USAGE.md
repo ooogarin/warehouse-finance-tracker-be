@@ -34,7 +34,7 @@ stock_usage_items
 ├── quantity           → qty dalam unit pilihan user
 ├── unit_price         → harga per base_unit [AUTO] dari FIFO
 ├── subtotal           → quantity × unit_price [AUTO/GENERATED]
-└── notes              → opsional
+└── notes              → opsional, free text
 ```
 
 ---
@@ -56,11 +56,12 @@ stock_usage_items
 2. Buat stock_usage_items (per item)
 3. Per item, kalkulasi konversi qty ke base_unit
 4. Kurangi ingredient_batches.qty_remaining (FIFO — batch tertua dulu)
+   → Jika qty span lebih dari satu batch, buat satu stock_log per batch
 5. Update ingredients.stock_quantity (-qty dalam base_unit)
 6. Buat stock_logs:
-   flow_type      = 'out'
-   reference_type = 'usage'
-   reference_id   = stock_usages.id
+   flow_type          = 'out'
+   reference_type     = 'usage'
+   reference_id       = stock_usages.id
    base_unit_quantity = qty dalam base_unit
    base_unit_price    = cost_per_unit dari FIFO batch
    balance_after      = stock_quantity setelah dikurangi
@@ -280,11 +281,13 @@ Tidak ada item → inline error: "Minimal 1 item harus ditambahkan"
 
 | # | Catatan |
 |---|---|
-| DEV-01 | Semua side effects saat Usage disimpan harus diproses dalam **satu DB transaction** — jika salah satu gagal, seluruh transaksi di-rollback |
+| DEV-01 | Semua side effects saat disimpan harus diproses dalam **satu DB transaction** — jika salah satu gagal, seluruh transaksi di-rollback |
 | DEV-02 | Qty di `stock_usage_items` disimpan dalam unit pilihan user. BE kalkulasi konversi ke base_unit menggunakan `ingredient_units.conversion_factor` sebelum update `ingredients.stock_quantity`, `ingredient_batches.qty_remaining`, dan `stock_logs` |
-| DEV-03 | Estimasi nilai COGS di Step 2 dikalkulasi BE saat user selesai input qty (on blur) — endpoint terpisah, tidak perlu submit form. Kalkulasi dari `ingredient_batches.cost_per_unit` batch tertua yang masih ada |
-| DEV-04 | Validasi qty di Step 2 harus cek ketersediaan stok real-time — pertimbangkan race condition jika ada usage lain yang disimpan bersamaan |
+| DEV-03 | `unit_price` di `stock_usage_items` = weighted average dari semua batch yang terpakai: SUM(batch_qty × cost_per_unit) / total_qty_base_unit |
+| DEV-04 | `stock_logs` dibuat **per batch yang terpakai** (bukan per item) — jika satu item span 2 batch, buat 2 baris stock_log dengan `reference_id` yang sama |
 | DEV-05 | FIFO saat menyimpan: kurangi `qty_remaining` dari batch dengan `purchase_date` terlama dulu. Jika qty melebihi satu batch, lanjut ke batch berikutnya hingga qty terpenuhi |
+| DEV-06 | Estimasi nilai di Step 2 dikalkulasi BE saat user selesai input qty (on blur) — endpoint terpisah, tidak perlu submit form |
+| DEV-07 | Validasi qty di Step 2 harus cek ketersediaan stok real-time — pertimbangkan race condition jika ada transaksi lain yang disimpan bersamaan |
 
 ---
 
