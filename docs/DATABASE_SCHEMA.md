@@ -681,9 +681,9 @@ CREATE TYPE debt_status AS ENUM (
 CREATE TABLE debts (
     id UUID PRIMARY KEY,
     merchant_id UUID NOT NULL,
-    creditor_type debt_creditor_type NOT NULL,
     supplier_id UUID,
     creditor_name VARCHAR(100),
+    creditor_type debt_creditor_type NOT NULL,
     purchase_order_id UUID,
     total_amount DECIMAL(15,3) NOT NULL,
     paid_amount DECIMAL(15,3) NOT NULL DEFAULT 0,
