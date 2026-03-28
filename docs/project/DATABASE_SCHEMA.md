@@ -280,8 +280,8 @@ CREATE INDEX idx_ingredient_batches_fifo
 CREATE TABLE purchase_orders (
     id UUID PRIMARY KEY,
     merchant_id UUID NOT NULL,
-    supplier_id UUID,
     purchase_date TIMESTAMPTZ NOT NULL,
+    supplier_id UUID,
     invoice_number VARCHAR(50) NOT NULL,
     total_amount DECIMAL(15,3) NOT NULL,
     paid_cash DECIMAL(15,3) NOT NULL DEFAULT 0,
@@ -380,8 +380,8 @@ CREATE TYPE stock_usage_type AS ENUM (
 CREATE TABLE stock_usages (
     id UUID PRIMARY KEY,
     merchant_id UUID NOT NULL,
-    type stock_usage_type NOT NULL,
     usage_date TIMESTAMPTZ NOT NULL,
+    type stock_usage_type NOT NULL,
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -554,13 +554,13 @@ CREATE TABLE stock_logs (
     id UUID PRIMARY KEY,
     ingredient_id UUID NOT NULL,
     flow_type stock_log_flow_type NOT NULL,
-    reference_type stock_log_reference_type NOT NULL,
-    reference_id UUID,
     base_unit_quantity DECIMAL(12,3) NOT NULL,
     base_unit_price DECIMAL(15,3) NOT NULL,
     total_amount DECIMAL(15,3) GENERATED ALWAYS AS (base_unit_quantity * base_unit_price) STORED,
     notes TEXT,
     balance_after DECIMAL(15,3),
+    reference_id UUID,
+    reference_type stock_log_reference_type NOT NULL,
     created_by UUID,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT check_base_unit_quantity_positive CHECK (base_unit_quantity > 0),
@@ -611,6 +611,11 @@ CREATE TYPE cash_log_category AS ENUM (
     'maintenance',        -- Service, perbaikan
     'other_out'
 );
+
+CREATE TYPE cash_log_reference_type AS ENUM (
+    'purchase_order',     -- Dari purchase_orders
+    'debt_payment'        -- Dari debt_payments
+);
 ```
 
 #### Create Table
@@ -620,14 +625,18 @@ CREATE TABLE cash_logs (
     id UUID PRIMARY KEY,
     merchant_id UUID NOT NULL,
     flow_type cash_log_flow_type NOT NULL,
+    cash_log_date TIMESTAMPTZ NOT NULL,
     amount DECIMAL(15,3) NOT NULL,
     category cash_log_category NOT NULL,
-    reference_id UUID,
     description TEXT,
     balance_after DECIMAL(15,3),
+    reference_id UUID,
+    reference_type cash_log_reference_type NULL,
     created_by UUID,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT check_amount_positive CHECK (amount > 0),
+    CONSTRAINT check_reference_consistency
+      CHECK ((reference_id IS NULL AND reference_type IS NULL) OR (reference_id IS NOT NULL AND reference_type IS NOT NULL)),
     CONSTRAINT fk_cash_logs_merchant_id FOREIGN KEY (merchant_id) REFERENCES merchants(id) ON DELETE RESTRICT,
     CONSTRAINT fk_cash_logs_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
@@ -662,8 +671,7 @@ CREATE TYPE debt_creditor_type AS ENUM (
 CREATE TYPE debt_status AS ENUM (
     'unpaid',
     'partial',
-    'paid',
-    'overdue'
+    'paid'
 );
 ```
 
