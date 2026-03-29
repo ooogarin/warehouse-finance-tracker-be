@@ -57,7 +57,7 @@ ingredient_units
 | Sudah pernah dipakai | Edit semua field kecuali `base_unit` (di-lock) + Nonaktifkan |
 | Nonaktif | Edit semua field + Aktifkan kembali — tidak bisa dihapus jika sudah pernah dipakai |
 
-**"Sudah pernah dipakai"** = ada record di `purchase_items`, `stock_logs`, atau `ingredient_batches` dengan `ingredient_id` ini.
+**"Sudah pernah dipakai"** = ada record di `purchase_order_items`, `stock_logs`, atau `ingredient_batches` dengan `ingredient_id` ini.
 
 **Aturan nama unik per merchant (termasuk nonaktif):**
 ```
@@ -84,8 +84,8 @@ Behaviour sama persis dengan ingredient:
 
 | Kondisi | Aksi yang Diizinkan |
 |---|---|
-| Belum pernah dipakai di `purchase_items` | Edit + Hard Delete |
-| Sudah pernah dipakai di `purchase_items` | Edit + Nonaktifkan — tidak bisa dihapus |
+| Belum pernah dipakai di `purchase_order_items` | Edit + Hard Delete |
+| Sudah pernah dipakai di `purchase_order_items` | Edit + Nonaktifkan — tidak bisa dihapus |
 | Nonaktif | Edit + Aktifkan kembali |
 
 **Aturan nama unik per ingredient:**
@@ -155,7 +155,7 @@ Action per row:
 | Edit | button | Selalu | Navigasi ke `SCR-ING-03` |
 | Hapus | button | Hanya jika belum pernah dipakai | Confirmation dialog → Hard Delete → refresh list |
 
-> **Cek "belum pernah dipakai":** BE query `purchase_items`, `stock_logs`, `ingredient_batches` by `ingredient_id`. Jika semua kosong → tampilkan tombol Hapus. Jika ada → sembunyikan tombol Hapus.
+> **Cek "belum pernah dipakai":** BE query `purchase_order_items`, `stock_logs`, `ingredient_batches` by `ingredient_id`. Jika semua kosong → tampilkan tombol Hapus. Jika ada → sembunyikan tombol Hapus.
 
 **States**
 | State | Tampilan |
@@ -290,7 +290,7 @@ Data per baris unit:
 Action per baris unit:
 | Label | Trigger | Kondisi tampil | Behaviour |
 |---|---|---|---|
-| Hapus | button | Hanya jika non-base unit AND belum pernah dipakai di `purchase_items` | Confirmation dialog → Hard Delete baris unit → refresh Section 2 |
+| Hapus | button | Hanya jika non-base unit AND belum pernah dipakai di `purchase_order_items` | Confirmation dialog → Hard Delete baris unit → refresh Section 2 |
 
 > Base unit: tombol Hapus dan toggle Status selalu disembunyikan.
 
@@ -349,8 +349,8 @@ Action tambah unit baru:
 | # | Catatan |
 |---|---|
 | DEV-01 | Endpoint GET ingredient detail (untuk Edit) harus kembalikan flag `is_used` (sudah pernah dipakai) dan `is_base_unit_editable` agar FE bisa lock field `base_unit` dan tombol Hapus/toggle unit |
-| DEV-02 | Cek "belum pernah dipakai" untuk ingredient: query `purchase_items`, `stock_logs`, `ingredient_batches` by `ingredient_id` |
-| DEV-03 | Cek "belum pernah dipakai" untuk unit: query `purchase_items` by `ingredient_unit_id` |
+| DEV-02 | Cek "belum pernah dipakai" untuk ingredient: query `purchase_order_items`, `stock_logs`, `ingredient_batches` by `ingredient_id` |
+| DEV-03 | Cek "belum pernah dipakai" untuk unit: query `purchase_order_items` by `ingredient_unit_id` |
 | DEV-04 | Duplikat check (nama ingredient dan nama unit) dilakukan on blur di FE (optimistic) dan wajib divalidasi ulang di BE saat submit |
 | DEV-05 | Jika `base_unit` diubah di Edit: hapus semua `ingredient_units` WHERE `conversion_factor != 1`, lalu update `ingredient_units` WHERE `conversion_factor = 1` dengan `unit_name` baru — semua dalam satu transaction |
 

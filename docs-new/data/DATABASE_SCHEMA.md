@@ -714,9 +714,9 @@ CREATE INDEX idx_debts_status
 CREATE INDEX idx_debts_supplier_id
     ON debts(supplier_id)
     WHERE deleted_at IS NULL;
-CREATE INDEX idx_debts_overdue
+CREATE INDEX idx_debts_merchant_status
     ON debts(merchant_id, status)
-    WHERE status = 'overdue' AND deleted_at IS NULL;
+    WHERE deleted_at IS NULL;
 ```
 
 ---

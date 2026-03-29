@@ -2,44 +2,42 @@
 
 ## Purpose
 
-This document is the main engineering reference for the backend architecture of Pengelola Modal Dapur.
+This document defines the high-level backend architecture direction for Pengelola Modal Dapur.
 
-It defines:
+It is intentionally concise. It should capture architectural decisions, not restate every screen flow or implementation detail.
 
-- the target code structure
-- module boundaries
-- request and dependency flow
-- merchant scoping rules
-- database access rules
-- error handling rules
-- migration direction from the current codebase to the target structure
+## Source of Truth
 
-Other engineering documents in `docs-new/engineering/` should follow this document, not contradict it.
+For product behavior and persistence rules, the primary source of truth is:
+
+1. `docs-new/data/DATABASE_SCHEMA.md`
+2. `docs-new/engineering/screen-lists/`
+
+This document must not override those sources.
+
+If this document conflicts with the database schema or the screen lists, follow the schema and screen lists.
 
 ## Architecture Goals
 
-The backend architecture is designed to support these goals:
+The backend architecture should:
 
-1. Keep business code easy to locate and maintain.
-2. Keep runtime and framework concerns separate from domain logic.
-3. Make merchant scoping explicit and consistent.
-4. Keep database writes and transactions easy to trace.
-5. Make the codebase easy to grow without turning `shared/` and `utils/` into dumping grounds.
+1. Keep business code easy to locate
+2. Keep runtime concerns separate from domain logic
+3. Make merchant scoping explicit
+4. Make multi-table write workflows easy to trace
+5. Stay practical for an incrementally evolving codebase
 
 ## Architecture Style
 
-The project uses a **hybrid module-first structure**.
+The project uses a hybrid module-first structure.
 
 This means:
 
-- business domains are grouped by module
-- global runtime concerns are grouped under `core/`
-- truly reusable helpers stay under `shared/`
+- Business domains live in `modules/`
+- Application-wide runtime concerns live in `core/`
+- Only truly reusable primitives live in `shared/`
 
-This approach is chosen because the project has both:
-
-- strong business domains such as suppliers, ingredients, stock, cash, and debts
-- strong application concerns such as middleware, auth, DB access, response formatting, and error handling
+This is the default direction unless there is a strong reason to do otherwise.
 
 ## Target Source Structure
 
@@ -49,138 +47,41 @@ src/
 
   core/
     config/
-      env.config.ts
-      logger.config.ts
     db/
-      client.ts
     errors/
-      app-error.ts
-      error-codes.ts
-      error-factories.ts
-      error-handler.ts
     http/
-      response.ts
-      hono.ts
     middleware/
-      auth.middleware.ts
-      merchant.middleware.ts
-      request-id.middleware.ts
-      logger.middleware.ts
-      validation.middleware.ts
-      role.middleware.ts
 
   modules/
     auth/
-      auth.routes.ts
-      auth.controller.ts
-      auth.service.ts
-      auth.repository.ts
-      auth.schema.ts
-      auth.types.ts
-
     merchants/
-      merchants.routes.ts
-      merchants.controller.ts
-      merchants.service.ts
-      merchants.repository.ts
-      merchants.schema.ts
-      merchants.types.ts
-      config/
-        merchant-config.service.ts
-        merchant-config.repository.ts
-        merchant-config.schema.ts
-        merchant-config.types.ts
-
     suppliers/
-      suppliers.routes.ts
-      suppliers.controller.ts
-      suppliers.service.ts
-      suppliers.repository.ts
-      suppliers.schema.ts
-      suppliers.types.ts
-
     ingredients/
-      ingredients.routes.ts
-      ingredients.controller.ts
-      ingredients.service.ts
-      ingredients.repository.ts
-      ingredients.schema.ts
-      ingredients.types.ts
-      units/
-        ingredient-units.service.ts
-        ingredient-units.repository.ts
-        ingredient-units.schema.ts
-        ingredient-units.types.ts
-
     purchase-orders/
-      purchase-orders.routes.ts
-      purchase-orders.controller.ts
-      purchase-orders.service.ts
-      purchase-orders.repository.ts
-      purchase-orders.schema.ts
-      purchase-orders.types.ts
-
     stock/
-      stock.routes.ts
-      stock.controller.ts
-      stock.types.ts
-      services/
-        stock-in.service.ts
-        stock-usage.service.ts
-        stock-waste.service.ts
-        stock-adjustment.service.ts
-      repositories/
-        stock-logs.repository.ts
-        ingredient-batches.repository.ts
-      schemas/
-        stock-in.schema.ts
-        stock-usage.schema.ts
-        stock-waste.schema.ts
-        stock-adjustment.schema.ts
-
     cash/
-      cash.routes.ts
-      cash.controller.ts
-      cash.service.ts
-      cash.repository.ts
-      cash.schema.ts
-      cash.types.ts
-
     debts/
-      debts.routes.ts
-      debts.controller.ts
-      debts.service.ts
-      debts.repository.ts
-      debts.schema.ts
-      debts.types.ts
 
   shared/
     constants/
-      messages.constant.ts
-      roles.constant.ts
     types/
-      common.types.ts
-      context.types.ts
     utils/
-      crypto.util.ts
-      jwt.util.ts
-      date.util.ts
 ```
 
-## Top-Level Responsibilities
+The exact internal file split may evolve, but the ownership model should remain stable.
+
+## Top-Level Ownership
 
 ### `core/`
 
-`core/` contains application-wide concerns.
+`core/` owns application-wide infrastructure:
 
-Examples:
-
-- environment configuration
-- logger setup
+- Environment configuration
+- Logger setup
 - DB client and transaction helpers
-- global error model
-- HTTP response helpers
-- global middleware
+- Error model and global error handling
+- HTTP helpers
+- Middleware
 
 Business rules must not live in `core/`.
 
@@ -188,34 +89,32 @@ Business rules must not live in `core/`.
 
 `modules/` is the default home for business logic.
 
-Each module owns its:
+Each module should own its:
 
-- routes
-- controllers
-- services
-- repositories
-- schemas
-- module-specific types
+- Routes
+- Controllers
+- Services
+- Repositories
+- Request schemas (validators)
+- Module-specific types (types/interfaces)
 
-If a file only serves one domain, it should stay inside that domain module.
+If a file only serves one domain, keep it inside that domain module.
 
 ### `shared/`
 
-`shared/` is only for reusable primitives that are not part of the runtime infrastructure.
+`shared/` is only for reusable primitives that are not runtime infrastructure and are not owned by one module.
 
-Examples:
+Typical examples:
 
-- common types
-- role constants
-- crypto and JWT utilities
+- Primitive shared types
+- Low-level utilities
+- Simple shared constants
 
 `shared/` must stay small.
 
-If something is only used by one module, keep it inside that module.
+## Domain Modules
 
-## First-Class Modules
-
-The backend is organized around these business modules:
+The current architecture direction is organized around these first-class modules:
 
 - `auth`
 - `merchants`
@@ -226,462 +125,148 @@ The backend is organized around these business modules:
 - `cash`
 - `debts`
 
-These modules align with the product scope defined by the screen list and the database schema.
+These modules align with the stable product areas currently defined by the screen lists and database schema.
 
-## Module Responsibilities
+Settings-related behavior should be implemented through the modules that own the underlying data:
 
-### `auth`
+- Account settings belong to `auth`
+- Merchant settings belong to `merchants`
 
-Owns:
-
-- register
-- login
-- authenticated user profile
-- password change
-- profile update
-
-This module is the main exception to merchant-scoped handling.
-
-### `merchants`
-
-Owns:
-
-- merchant CRUD
-- user-to-merchant membership lookup
-- merchant access verification
-- merchant configuration
-
-### `suppliers`
-
-Owns:
-
-- supplier CRUD
-- supplier list and detail queries
-
-### `ingredients`
-
-Owns:
-
-- ingredient CRUD
-- ingredient metadata
-- ingredient unit management
-
-### `purchase-orders`
-
-Owns:
-
-- purchase order writes
-- purchase item writes
-- payment split recording
-- purchase history queries
-
-### `stock`
-
-Owns:
-
-- stock in
-- stock usage
-- stock waste
-- stock adjustment
-- stock logs
-- ingredient batch tracking
-
-### `cash`
-
-Owns:
-
-- cash in
-- cash out
-- cash movement logging
-- balance tracking
-
-### `debts`
-
-Owns:
-
-- debt creation
-- debt payment
-- debt status tracking
-- debt history
-
-## Sub-Module Rules
-
-Sub-modules are allowed, but only when they add clarity.
-
-Create a sub-module when one of these is true:
-
-1. The area has its own persistence rules.
-2. The area has its own request schema and validation rules.
-3. The area has enough business logic to grow independently.
-4. The parent module becomes crowded and harder to scan.
-
-Examples:
-
-- `merchants/config`
-- `ingredients/units`
-
-Do not create sub-modules too early for trivial CRUD behavior.
+This keeps ownership aligned with persistence and business rules rather than UI navigation.
 
 ## Layer Responsibilities
 
 ### Routes
 
-Routes are declarative.
-
 Routes should:
 
-- define endpoints
-- attach middleware
-- attach validation
-- delegate to controllers
+- Declare endpoints
+- Attach middleware
+- Attach validation
+- Delegate to controllers
 
 Routes must not contain business logic or SQL.
 
 ### Controllers
 
-Controllers are responsible for HTTP input and output.
-
 Controllers should:
 
-- read params, query, headers, and body
-- read request context
-- call services
-- return formatted responses
+- Read request input
+- Read request context
+- Call services
+- Return formatted responses
 
 Controllers must not:
 
-- implement business rules
-- call the database directly
-- manage transactions
+- Implement business rules
+- Access the database directly
+- Manage transactions
 
 ### Services
 
-Services are responsible for business orchestration.
-
 Services should:
 
-- validate business rules
-- coordinate multiple repositories
-- manage transaction boundaries when needed
-- throw business errors
+- Enforce business rules
+- Orchestrate repository calls
+- Manage transaction boundaries when needed
+- Throw business-level errors
 
 Services must not:
 
-- format HTTP responses
-- depend on Hono `Context`
-- contain raw SQL
+- Format HTTP responses
+- Depend on Hono `Context`
+- Contain raw SQL
 
 ### Repositories
 
-Repositories are responsible for persistence only.
-
 Repositories should:
 
-- execute parameterized SQL
-- select explicit columns
-- expose clear read and write methods
-- enforce tenant scoping through method arguments
+- Execute parameterized SQL
+- Expose explicit read and write methods
+- Accept scoping inputs such as `merchantId` explicitly
+- Stay focused on persistence
 
 Repositories must not:
 
-- access request context directly
-- contain business rules
-- decide transaction boundaries
+- Depend on HTTP context
+- Contain business rules
+- Decide transaction boundaries
 
-## Request Lifecycle
+## Request Flow
 
-The standard request lifecycle is:
-
-```text
-Request
--> Route
--> Middleware chain
--> Controller
--> Service
--> Repository
--> Database
--> Response formatter
-```
-
-### Public Auth Flow
-
-Examples:
-
-- `POST /auth/register`
-- `POST /auth/login`
-
-Flow:
+The default request lifecycle is:
 
 ```text
 request
--> route validation
+-> route
+-> middleware
 -> controller
 -> service
 -> repository
+-> database
 -> response
 ```
 
-### Authenticated Non-Merchant Flow
+This is the standard flow unless a very specific case requires otherwise.
 
-Examples:
+## Merchant Scoping
 
-- `GET /v1/auth/me`
-- `PUT /v1/auth/profile`
-- `PUT /v1/auth/password`
+Merchant scoping is a first-class business boundary for most modules.
 
-Flow:
+The default rule is:
 
-```text
-request
--> authenticate
--> route validation
--> controller
--> service
--> repository
--> response
-```
-
-### Merchant-Scoped Flow
-
-Examples:
-
-- `GET /v1/suppliers`
-- `POST /v1/ingredients`
-- `POST /v1/purchase-orders`
-
-Flow:
-
-```text
-request
--> authenticate
--> require X-Merchant-ID
--> verify merchant access
--> route validation
--> controller
--> service
--> repository
--> response
-```
-
-## Routing Strategy
-
-### Public Routes
-
-Do not require JWT or merchant context.
-
-Examples:
-
-- `POST /auth/register`
-- `POST /auth/login`
-
-### Authenticated Non-Merchant Routes
-
-Require JWT, but do not require `X-Merchant-ID`.
-
-Examples:
-
-- `GET /v1/auth/me`
-- `PUT /v1/auth/profile`
-- `PUT /v1/auth/password`
-
-### Merchant-Scoped Routes
-
-Require both:
-
-- JWT
-- `X-Merchant-ID`
-
-Examples:
-
-- `/v1/suppliers`
-- `/v1/ingredients`
-- `/v1/purchase-orders`
-- `/v1/stock/...`
-- `/v1/cash/...`
-- `/v1/debts/...`
-
-## Merchant Boundary
-
-Merchant context is a first-class business boundary for almost all modules except public auth and non-merchant auth profile operations.
-
-Merchant context is passed through the request header:
-
-```text
-X-Merchant-ID
-```
-
-The merchant middleware must:
-
-1. read the header
-2. validate the header value
-3. verify that the authenticated user has access to the merchant
-4. store `merchantId` and merchant context in request variables
+- Public auth flows are not merchant-scoped
+- Authenticated account-level flows may be non-merchant-scoped
+- Merchant operational flows are merchant-scoped
 
 Merchant-scoped repository methods must accept `merchantId` explicitly.
 
-Examples:
-
-```ts
-getAllByMerchantId(merchantId)
-getOneByMerchantAndId(merchantId, id)
-```
-
 Merchant scoping must never depend on hidden global state.
-
-## Database Access Strategy
-
-Database access is handled through a single DB client module in:
-
-```text
-src/core/db/client.ts
-```
-
-This module owns:
-
-- the shared SQL pool
-- transaction reservation
-- transaction commit
-- transaction rollback
-- DB executor types
-
-The codebase should not maintain separate DB client implementations for different layers.
 
 ## Transaction Strategy
 
-The project uses **manual transaction handling** for multi-step write workflows.
+Use manual transaction handling for workflows that write across multiple tables.
 
-Services are responsible for transaction boundaries.
+Services own transaction boundaries.
 
-Recommended pattern:
+Typical cases include:
 
-```ts
-let db: ReservedSQL | null = null;
+- Onboarding completion
+- Purchase order creation
+- Stock usage, waste, and adjustment writes
+- Debt payment flows
 
-try {
-  db = await startTransaction();
+Controllers and repositories must not start transactions.
 
-  const order = await purchaseOrdersRepository.insert(db, payload);
-  await stockLogsRepository.insert(db, stockLogPayload);
-  await cashLogsRepository.insert(db, cashLogPayload);
+## Database Access Strategy
 
-  await commitTransaction(db);
-  return order;
-} catch (error) {
-  if (db) {
-    await rollbackTransaction(db);
-  }
+The project should use a single DB client module under `src/core/db/`.
 
-  throw error;
-}
-```
+The DB layer should own:
 
-Use transactions when:
+- The shared pool
+- Transaction reservation
+- Transaction commit
+- Transaction rollback
+- DB executor types
 
-- multiple writes must succeed together
-- multiple related tables are updated together
-- partial failure would leave business data inconsistent
-
-Do not start transactions in controllers or repositories.
-
-## Repository Contract
-
-The repository contract is intentionally explicit.
-
-### Standard Read Methods
-
-Use short signatures for normal reads.
-
-Examples:
-
-```ts
-getOneById(id)
-getOneByEmail(email)
-getAllByMerchantId(merchantId)
-```
-
-### Transactional Read Methods
-
-Use dedicated transactional read methods only when the read must use the same reserved DB connection.
-
-Examples:
-
-```ts
-getOneByIdTx(db, id)
-getByMerchantAndIdTx(db, merchantId, id)
-```
-
-### Write Methods
-
-Write methods must always receive the DB executor explicitly.
-
-Examples:
-
-```ts
-insert(db, payload)
-updateById(db, id, payload)
-softDeleteById(db, id)
-```
-
-This keeps:
-
-- normal reads concise
-- transactional intent explicit
-- write flows easy to review
+Do not maintain separate DB client implementations for different layers.
 
 ## Error Handling Strategy
 
-The project uses a single application error model based on `AppError`.
+Use a single application error model based on `AppError`.
 
-Recommended structure:
+The error design should stay simple:
 
-```text
-src/core/errors/
-  app-error.ts
-  error-codes.ts
-  error-factories.ts
-  error-handler.ts
-```
+- Services may throw business errors directly
+- Unknown failures may be converted to internal errors
+- The global error handler maps known errors to HTTP responses
 
-`AppError` should contain:
-
-- `code`
-- `message`
-- `statusCode`
-- `details?`
-
-Recommended helper factories:
-
-- `badRequestError`
-- `unauthorizedError`
-- `forbiddenError`
-- `notFoundError`
-- `conflictError`
-- `internalError`
-
-## Error Flow Rules
-
-Services may throw business errors directly.
-
-When transactions are used:
-
-1. rollback if needed
-2. rethrow the original error if it is already an `AppError`
-3. convert to `internalError` only for unknown failures
-
-Avoid this anti-pattern:
-
-- catching every error and converting everything into `500`
-
-The global error handler should:
-
-1. detect `AppError`
-2. map validation errors to `400`
-3. optionally map known DB constraint errors
-4. fallback to `500` for unknown failures
+Avoid deep error hierarchies that do not add practical value.
 
 ## Dependency Direction
 
-Allowed direction:
+Allowed dependency direction:
 
 ```text
 routes
@@ -693,54 +278,77 @@ routes
 
 Additionally:
 
-- services may use `core/` and `shared/`
-- repositories may use `core/db` and shared primitives
+- Services may use `core/` and `shared/`
+- Repositories may use `core/db` and shared primitives
 
 Not allowed:
 
-- controllers calling repositories directly
-- repositories depending on controllers
-- services depending on Hono `Context`
-- business logic inside middleware
+- Controllers calling repositories directly
+- Repositories depending on controllers
+- Services depending on Hono `Context`
+- Business logic inside middleware
 
-## Naming Rules
+## Naming Conventions
 
-Use these file suffixes consistently:
+Use these suffixes consistently:
 
-- `*.routes.ts`
+- `*.route.ts`
 - `*.controller.ts`
 - `*.service.ts`
 - `*.repository.ts`
 - `*.schema.ts`
-- `*.types.ts`
+- `*.type.ts`
+- `*.constant.ts`
 - `*.middleware.ts`
 
-When a module grows too large, split by sub-module or by use case without breaking the module boundary.
+Use plural folder names for collections where that naming is natural.
+
+Use singular base names for main files inside a module.
+
+Example:
+
+- `modules/merchants/merchant.service.ts`
+- `modules/suppliers/supplier.repository.ts`
+- `modules/ingredients/ingredient.route.ts`
+
+Split a module further only when the split improves clarity and ownership.
+
+## Relationship to Other Engineering Docs
+
+This document is the high-level architectural summary.
+
+More specific rules belong in dedicated documents such as:
+
+- Module boundaries
+- Request flow
+- Routing and merchant context
+- DB access
+- Error handling
+- Testing strategy
+
+Those documents should remain consistent with this overview and with the source of truth documents.
 
 ## Migration Direction
 
-The current codebase is still transitioning from a layer-first structure into the target hybrid module-first structure.
+The codebase is still evolving toward this target structure.
 
-The migration should be incremental, not a big-bang rewrite.
+Migration should be incremental:
 
-Recommended order:
-
-1. establish `core/db` and `core/errors`
-2. move auth into `modules/auth`
-3. add merchant middleware based on `X-Merchant-ID`
-4. implement new modules in the target structure
-5. migrate old files only when they are actively being worked on
+1. Preserve current behavior
+2. Move code toward module ownership
+3. Make merchant scoping explicit
+4. Isolate runtime concerns under `core/`
+5. Avoid broad rewrites unless they are necessary
 
 ## Summary
 
-This architecture aims to keep the codebase explicit, modular, and easy to evolve.
+The architecture direction is:
 
-The main decisions are:
+- Hybrid module-first
+- Explicit ownership by domain
+- Explicit merchant scoping
+- Transaction control in services
+- Persistence-only repositories
+- Simple shared infrastructure
 
-- hybrid module-first structure
-- explicit merchant scoping via `X-Merchant-ID`
-- manual transaction handling in services
-- explicit repository contracts
-- single `AppError` model
-
-All engineering documents should stay aligned with these decisions.
+This document should stay stable, short, and decision-oriented.

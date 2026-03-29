@@ -26,14 +26,14 @@ purchase_orders
 ├── supplier_id    → opsional (nullable)
 ├── purchase_date  → tanggal pembelian aktual
 ├── invoice_number → opsional
-├── total_amount   → auto-kalkulasi dari purchase_items
+├── total_amount   → auto-kalkulasi dari purchase_order_items
 ├── paid_cash      → bayar dari kas resto
 ├── paid_owner     → bayar dari kantong owner (talangan)
 ├── debt_amount    → hutang ke supplier
 └── notes          → opsional
     CONSTRAINT: paid_cash + paid_owner + debt_amount = total_amount
 
-purchase_items
+purchase_order_items
 ├── purchase_order_id  → terikat ke PO
 ├── ingredient_id      → ingredient yang dibeli
 ├── ingredient_unit_id → unit pembelian
@@ -79,7 +79,7 @@ Semua nilai >= 0
 **Side effects saat PO disimpan — semua dalam satu DB transaction:**
 ```
 1. Buat purchase_orders
-2. Buat purchase_items (per item)
+2. Buat purchase_order_items (per item)
 3. Update ingredients.stock_quantity (+qty dalam base_unit) per item
 4. Buat ingredient_batches per item (untuk FIFO tracking)
 5. Buat stock_logs movement_type='in', reference_type='purchase' per item
@@ -203,11 +203,11 @@ Header tabel: Ingredient / Unit / Qty / Harga Satuan / Subtotal / Aksi
 Per baris item:
 | Field | Type | Rule | Maps to |
 |---|---|---|---|
-| Ingredient | dropdown + search | `[R]` hanya tampilkan `is_active = true` | `purchase_items.ingredient_id` |
-| Unit | dropdown | `[R]` tampil setelah ingredient dipilih, hanya `ingredient_units.is_active = true` milik ingredient tersebut | `purchase_items.ingredient_unit_id` |
-| Qty | number input | `[R]` > 0 | `purchase_items.quantity` |
-| Harga Satuan | number input | `[R]` >= 0 | `purchase_items.unit_price` |
-| Subtotal | number | `[RO]` qty × harga satuan `[AUTO]` | `purchase_items.subtotal` |
+| Ingredient | dropdown + search | `[R]` hanya tampilkan `is_active = true` | `purchase_order_items.ingredient_id` |
+| Unit | dropdown | `[R]` tampil setelah ingredient dipilih, hanya `ingredient_units.is_active = true` milik ingredient tersebut | `purchase_order_items.ingredient_unit_id` |
+| Qty | number input | `[R]` > 0 | `purchase_order_items.quantity` |
+| Harga Satuan | number input | `[R]` >= 0 | `purchase_order_items.unit_price` |
+| Subtotal | number | `[RO]` qty × harga satuan `[AUTO]` | `purchase_order_items.subtotal` |
 
 Action per baris:
 | Label | Trigger | Behaviour |
@@ -347,9 +347,9 @@ Tampil error: "Total pembayaran harus sama dengan total belanja"
 |---|---|
 | Ingredient | `ingredients.name` |
 | Unit | `ingredient_units.unit_name` |
-| Qty | `purchase_items.quantity` |
-| Harga Satuan | `purchase_items.unit_price` |
-| Subtotal | `purchase_items.subtotal` |
+| Qty | `purchase_order_items.quantity` |
+| Harga Satuan | `purchase_order_items.unit_price` |
+| Subtotal | `purchase_order_items.subtotal` |
 | **Total** | `purchase_orders.total_amount` |
 
 **Section: Pembayaran**
@@ -401,7 +401,7 @@ Tampil error: "Total pembayaran harus sama dengan total belanja"
 | # | Catatan |
 |---|---|
 | DEV-01 | Semua side effects saat PO disimpan harus diproses dalam **satu DB transaction** — jika salah satu gagal, seluruh transaksi di-rollback |
-| DEV-02 | Qty item di `purchase_items` disimpan dalam unit yang dipilih user (`ingredient_unit_id`). BE harus kalkulasi konversi ke `base_unit` menggunakan `ingredient_units.conversion_factor` sebelum: (1) update `ingredients.stock_quantity`, (2) membuat `ingredient_batches`, dan (3) membuat `stock_logs` — semua nilai qty dan harga di ketiga tabel ini harus dalam `base_unit` |
+| DEV-02 | Qty item di `purchase_order_items` disimpan dalam unit yang dipilih user (`ingredient_unit_id`). BE harus kalkulasi konversi ke `base_unit` menggunakan `ingredient_units.conversion_factor` sebelum: (1) update `ingredients.stock_quantity`, (2) membuat `ingredient_batches`, dan (3) membuat `stock_logs` — semua nilai qty dan harga di ketiga tabel ini harus dalam `base_unit` |
 | DEV-03 | `ingredient_batches.cost_per_unit` disimpan dalam `base_unit` — kalkulasi: `unit_price / conversion_factor` |
 | DEV-04 | Status bayar di SCR-PO-01 list adalah derived data — query `debts` dan `debt_payments` by `purchase_order_id` |
 | DEV-05 | Tombol "Bayar Hutang" di SCR-PO-03 mengarah ke debt yang terkait PO ini — query `debts` WHERE `purchase_order_id = [id]` AND `creditor_type = 'supplier'` |

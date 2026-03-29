@@ -1,106 +1,117 @@
 # Gambaran Fitur
 
-Dokumen ini merangkum apa yang dilakukan produk berdasarkan area utama yang sudah direview melalui screen list.
+Dokumen ini merangkum fitur produk berdasarkan area utama yang sudah didefinisikan di source of truth, yaitu `DATABASE_SCHEMA.md` dan `screen-lists` di `docs-new/engineering`.
 
 ## 1. Authentication
 
 - Registrasi pengguna.
-- Login.
-- Akses profil pengguna yang sedang login.
-- Perubahan data profil dan kata sandi.
+- Login pengguna.
+- Permintaan reset password melalui email.
+- Reset password melalui link token untuk flow lupa password.
 
-## 2. Onboarding
+## 2. Settings
 
-- Pengisian data dasar merchant.
-- Pencatatan saldo awal.
-- Pengisian data awal bahan baku dan pemasok.
-- Penyiapan merchant agar siap dipakai untuk operasional harian.
+- Memperbarui profil akun pengguna.
+- Mengganti password saat pengguna sudah login.
+- Memperbarui informasi merchant aktif.
 
-## 3. Supplier Management
+## 3. Onboarding
 
-- Pencatatan data pemasok.
-- Pembaruan dan pengarsipan pemasok.
-- Daftar pemasok aktif per merchant.
-- Penyimpanan informasi kontak dan catatan pemasok.
+- Pengisian data awal merchant.
+- Pengisian saldo awal kas.
+- Penambahan supplier pertama secara opsional.
+- Penyelesaian setup awal agar merchant siap masuk ke dashboard.
 
-## 4. Ingredient Management
+## 4. Supplier Management
 
-- Pencatatan master bahan baku.
-- Pengelompokan bahan berdasarkan kategori.
-- Pengaturan satuan dasar bahan.
-- Pengaturan batas minimum stok.
-- Pengelolaan status aktif bahan.
+- Menambah supplier baru.
+- Melihat daftar supplier per merchant.
+- Mengubah data supplier.
+- Mengarsipkan supplier melalui soft delete.
+- Melihat detail supplier dan riwayat purchase order terkait.
 
-## 5. Purchase Orders
+## 5. Ingredient Management
 
-- Pencatatan pembelian bahan baku.
-- Pemilihan pemasok untuk transaksi pembelian.
-- Pencatatan item pembelian beserta jumlah, satuan, dan harga.
-- Pemisahan pembayaran tunai, utang pemasok, dan talangan pemilik usaha.
-- Penyimpanan invoice dan catatan transaksi bila diperlukan.
+- Menambah dan mengelola master ingredient.
+- Menentukan kategori, base unit, dan minimum stock.
+- Mengelola unit turunan beserta conversion factor.
+- Mengaktifkan, menonaktifkan, atau menghapus data sesuai aturan pemakaian.
+- Menjaga konsistensi ingredient dan unit yang sudah pernah dipakai dalam transaksi.
 
-## 6. Stock Monitoring
+## 6. Purchase Orders
 
-- Melihat stok bahan baku saat ini.
-- Memantau stok minimum dan stok kritis.
-- Melihat daftar bahan aktif yang perlu segera dibeli.
-- Meninjau riwayat stok berdasarkan data pergerakan.
+- Mencatat purchase order bahan baku.
+- Memilih supplier atau membuat pembelian tanpa supplier.
+- Mencatat item pembelian beserta unit, quantity, dan harga.
+- Membagi pembayaran menjadi kas merchant, talangan owner, dan hutang supplier.
+- Menyimpan invoice number dan catatan transaksi.
+- Menghasilkan efek lanjutan ke stock, batch, cash log, dan debt saat transaksi disimpan.
 
-## 7. Stock Usage
+## 7. Stock Monitoring
 
-- Mencatat bahan yang dipakai untuk operasional.
-- Mengurangi stok berdasarkan jumlah yang digunakan.
-- Menyimpan keterangan penggunaan bila diperlukan.
-- Mencatat nilai penggunaan berdasarkan data batch dan harga pokok.
+- Melihat ringkasan stok bahan baku aktif.
+- Memantau stok rendah dan stok habis.
+- Melihat detail stok per ingredient.
+- Meninjau riwayat pergerakan stok dari pembelian, usage, waste, dan adjustment.
 
-## 8. Stock Waste
+## 8. Stock Usage
 
-- Mencatat bahan yang dibuang atau rusak.
+- Mencatat pemakaian bahan baku untuk operasional.
+- Mengurangi stok berdasarkan quantity dan unit yang dipilih.
+- Menyimpan catatan penggunaan bila diperlukan.
+- Mencatat nilai penggunaan berdasarkan batch cost yang diproses sistem.
+
+## 9. Stock Waste
+
+- Mencatat bahan baku yang dibuang, rusak, atau tidak layak pakai.
 - Menyimpan alasan waste.
 - Mengurangi stok secara terstruktur.
-- Mencatat nilai kerugian bahan yang terbuang.
+- Mencatat nilai kerugian berdasarkan cost bahan yang keluar.
 
-## 9. Stock Adjustment
+## 10. Stock Adjustment
 
-- Menyesuaikan stok sistem dengan hasil stok fisik.
-- Mencatat alasan penyesuaian.
+- Menyesuaikan stok sistem dengan hasil perhitungan fisik.
+- Mencatat alasan adjustment.
 - Menyimpan riwayat koreksi stok.
-- Membantu proses audit dan rekonsiliasi persediaan.
+- Mendukung proses audit dan rekonsiliasi persediaan.
 
-## 10. Cash Management
+## 11. Cash Management
 
-- Mencatat kas masuk seperti setoran penjualan dan penambahan modal.
-- Mencatat kas keluar seperti belanja, gaji, utilitas, dan pengambilan pribadi.
-- Memantau saldo kas merchant.
-- Menyimpan riwayat arus kas per merchant.
+- Mencatat transaksi kas masuk manual.
+- Mencatat transaksi kas keluar manual.
+- Menampilkan saldo kas merchant saat ini.
+- Menyimpan riwayat arus kas, termasuk transaksi yang berasal dari flow lain seperti purchase order dan debt payment.
+- Menampilkan detail transaksi kas secara read-only.
 
-## 11. Debt Management
+## 12. Debt Management
 
-- Mencatat utang ke pemasok.
-- Mencatat kewajiban terkait talangan pemilik usaha.
-- Memantau total, sisa, dan status utang.
-- Mencatat pembayaran utang dan riwayat pelunasan.
-- Membantu pemantauan jatuh tempo.
+- Mencatat hutang manual ke supplier, owner, atau pihak lain.
+- Mencatat hutang otomatis yang berasal dari purchase order.
+- Memantau total hutang, sisa hutang, status, dan jatuh tempo.
+- Mencatat pembayaran hutang.
+- Menyimpan riwayat pelunasan dan dampaknya ke saldo kas.
 
-## 12. Dashboard
+## 13. Dashboard
 
-- Merangkum kondisi kas, stok, dan utang.
-- Menampilkan peringatan untuk stok rendah dan utang jatuh tempo.
-- Menyorot area kebocoran modal seperti waste atau pengambilan pribadi.
-- Membantu pemilik usaha membaca kondisi usaha secara cepat.
+- Menampilkan ringkasan kondisi kas.
+- Menampilkan breakdown pengeluaran utama.
+- Menampilkan alert stok rendah dan stok habis.
+- Menampilkan top waste bulan berjalan.
+- Menampilkan alert hutang overdue dan hutang yang segera jatuh tempo.
 
-## 13. Reports
+## 14. Reports
 
-- Menyediakan ringkasan data operasional berdasarkan periode.
-- Mendukung peninjauan transaksi kas, stok, pembelian, dan utang.
-- Membantu evaluasi historis dan pengambilan keputusan.
+- Menyediakan financial summary berdasarkan periode.
+- Menyediakan stock report untuk inventory, usage, waste, dan movement.
+- Menyediakan supplier performance report berdasarkan pembelian dan hutang.
+- Mendukung filter periode dan export data operasional.
 
 ## Future Scope
 
-Fitur berikut berada di luar cakupan inti saat ini dan dapat dipisahkan sebagai pengembangan berikutnya:
+Fitur berikut berada di luar scope inti saat ini dan dapat dipertimbangkan sebagai pengembangan berikutnya:
 
-- Asisten belanja dan rekomendasi pemasok.
-- Pengiriman daftar belanja ke pemasok.
+- Asisten belanja dan rekomendasi supplier.
+- Pengiriman daftar belanja ke supplier.
 - Pencatatan penjualan detail per menu.
 - Batch cooking berbasis resep.
 - Insight dashboard lanjutan dan perbandingan multi-cabang.

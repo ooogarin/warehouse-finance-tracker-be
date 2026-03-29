@@ -1,31 +1,40 @@
 # Folder Structure
 
+## Purpose
+
+This document defines the target backend folder structure and the rules for placing files inside it.
+
+It should help answer:
+
+- Where a new file should live
+- When a file belongs in `core/`, `modules/`, or `shared/`
+- When a module should be split further
+
+## Source of Truth
+
+For product behavior and persistence rules, the primary source of truth is:
+
+1. `docs-new/data/DATABASE_SCHEMA.md`
+2. `docs-new/engineering/screen-lists/`
+
+For structural decisions, this document should stay aligned with:
+
+- `docs-new/engineering/ARCHITECTURE_OVERVIEW.md`
+- `docs-new/engineering/MODULE_BOUNDARIES.md`
+
 ## Target Structure
 
 ```text
 src/
   index.ts
+
   core/
     config/
-      env.config.ts
-      logger.config.ts
     db/
-      client.ts
     errors/
-      app-error.ts
-      error-codes.ts
-      error-factories.ts
-      error-handler.ts
     http/
-      response.ts
-      hono.ts
     middleware/
-      auth.middleware.ts
-      merchant.middleware.ts
-      request-id.middleware.ts
-      logger.middleware.ts
-      validation.middleware.ts
-      role.middleware.ts
+
   modules/
     auth/
     merchants/
@@ -35,54 +44,164 @@ src/
     stock/
     cash/
     debts/
+
   shared/
     constants/
     types/
     utils/
 ```
 
-## Rules
+The exact file set may evolve, but the top-level ownership model should remain stable.
 
-- `core/` is reserved for app-wide infrastructure and runtime concerns.
-- `modules/` is the default place for business logic.
-- `shared/` must stay small. If a file only serves one module, keep it inside that module.
+## Top-Level Placement Rules
 
-## File Naming
+### `core/`
 
-- Routes: `*.routes.ts`
-- Controllers: `*.controller.ts`
-- Services: `*.service.ts`
-- Repositories: `*.repository.ts`
-- Schemas: `*.schema.ts`
-- Types: `*.types.ts`
-- Middleware: `*.middleware.ts`
+Put a file in `core/` only if it is application-wide runtime infrastructure.
 
-## Module Layout
+Typical examples:
+
+- Environment config
+- Logger setup
+- DB client and transaction helpers
+- Error model and global error handling
+- HTTP helpers
+- Middleware
+
+Do not put business rules in `core/`.
+
+### `modules/`
+
+`modules/` is the default location for business logic.
+
+If a file belongs to one domain, it should usually live inside that module.
+
+Typical module contents:
+
+- Routes
+- Controllers
+- Services
+- Repositories
+- Request schemas
+- Module-specific types
+
+### `shared/`
+
+Use `shared/` only for small reusable primitives that are:
+
+- Used by multiple modules
+- Not runtime infrastructure
+- Not clearly owned by one domain
+
+If the ownership is obvious, keep the file in the owning module instead.
+
+## Default Module Layout
 
 The default module layout is:
 
 ```text
 modules/<module-name>/
-  <module-name>.routes.ts
-  <module-name>.controller.ts
-  <module-name>.service.ts
-  <module-name>.repository.ts
-  <module-name>.schema.ts
-  <module-name>.types.ts
+  <singular-name>.route.ts
+  <singular-name>.controller.ts
+  <singular-name>.service.ts
+  <singular-name>.repository.ts
+  <singular-name>.schema.ts
+  <singular-name>.type.ts
 ```
+
+This is the starting point, not a rigid requirement.
+
+If a module stays small, this layout is enough.
+
+For example:
+
+- `modules/merchants/merchant.service.ts`
+- `modules/suppliers/supplier.repository.ts`
+- `modules/ingredients/ingredient.schema.ts`
 
 ## Sub-Module Layout
 
-Use a nested folder only when the area has independent behavior or persistence rules.
+Use a nested folder only when it improves clarity.
+
+Typical reasons:
+
+1. The area has distinct persistence behavior.
+2. The area has distinct validation or request-shape rules.
+3. The area has enough business logic to grow independently.
+4. The module root becomes crowded and hard to scan.
 
 Example:
 
 ```text
 modules/ingredients/
-  ingredients.service.ts
+  ingredient.route.ts
+  ingredient.controller.ts
+  ingredient.service.ts
+  ingredient.repository.ts
+  ingredient.schema.ts
+  ingredient.type.ts
   units/
-    ingredient-units.service.ts
-    ingredient-units.repository.ts
-    ingredient-units.schema.ts
-    ingredient-units.types.ts
+    ingredient-unit.service.ts
+    ingredient-unit.repository.ts
+    ingredient-unit.schema.ts
+    ingredient-unit.type.ts
 ```
+
+Do not create sub-modules too early for trivial CRUD behavior.
+
+## File Naming Rules
+
+Use these suffixes consistently:
+
+- `*.route.ts`
+- `*.controller.ts`
+- `*.service.ts`
+- `*.repository.ts`
+- `*.schema.ts`
+- `*.type.ts`
+- `*.constant.ts`
+- `*.middleware.ts`
+
+Consistency matters more than novelty here.
+
+Folder naming rule:
+
+- Use plural folder names for collections such as `modules/`, `constants/`, and `types/`
+- Use singular base names and singular file suffixes for main files inside a module
+- Example: `modules/merchants/merchant.service.ts`, not `modules/merchants/merchants.service.ts`
+
+## Placement Heuristics
+
+Use these rules when deciding where a file goes:
+
+1. If it owns business behavior for one domain, put it in that module.
+2. If it is runtime infrastructure used across the app, put it in `core/`.
+3. If it is a small reusable primitive with no single owner, put it in `shared/`.
+4. If you are unsure, prefer module ownership over `shared/`.
+
+Examples:
+
+- Account settings logic belongs in `modules/auth/`
+- Merchant settings logic belongs in `modules/merchants/`
+- Merchant middleware belongs in `core/middleware/`
+- DB transaction helpers belong in `core/db/`
+
+## Anti-Patterns
+
+Avoid these structure problems:
+
+- Putting business logic in `core/`
+- Growing `shared/` into a dumping ground
+- Creating a new top-level module just because the UI has a separate page
+- Splitting tiny modules into sub-modules too early
+- Mixing unrelated domains inside one module
+
+## Summary
+
+The folder structure should reinforce ownership:
+
+- `core/` for runtime infrastructure
+- `modules/` for domain logic
+- `shared/` for small cross-module primitives
+
+If the folder structure makes ownership less obvious, the structure is probably wrong.

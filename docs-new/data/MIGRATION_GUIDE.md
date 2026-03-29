@@ -36,7 +36,7 @@ Each table gets its own migration file with:
 | 007 | `007_create_table_ingredient_units.sql` | ingredient_units | ingredients | - |
 | 008 | `008_create_table_ingredient_batches.sql` | ingredient_batches | ingredients | FIFO tracking |
 | 009 | `009_create_table_purchase_orders.sql` | purchase_orders | merchants, suppliers | Payment split: cash/owner/debt |
-| 010 | `010_create_table_purchase_items.sql` | purchase_items | purchase_orders, ingredients, ingredient_units | Has generated subtotal column |
+| 010 | `010_create_table_purchase_order_items.sql` | purchase_order_items | purchase_orders, ingredients, ingredient_units | Has generated subtotal column |
 | 011 | `011_create_table_stock_logs.sql` | stock_logs | ingredients, users | Uses movement & reference enums |
 | 012 | `012_create_table_cash_logs.sql` | cash_logs | merchants, users | Uses flow & category enums |
 | 013 | `013_create_table_debts.sql` | debts | merchants, suppliers, purchase_orders | Uses creditor & status enums |

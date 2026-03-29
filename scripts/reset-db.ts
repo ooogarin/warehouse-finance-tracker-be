@@ -49,7 +49,7 @@ const resetDatabase = async (): Promise<void> => {
       'debts',
       'cash_logs',
       'stock_logs',
-      'purchase_items',
+      'purchase_order_items',
       'purchase_orders',
       'ingredient_batches',
       'ingredient_units',

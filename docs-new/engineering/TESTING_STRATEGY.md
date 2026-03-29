@@ -1,44 +1,101 @@
 # Testing Strategy
 
-## Goal
+## Purpose
 
-Add tests in the same direction as the new architecture so regression risk stays low while modules grow.
+This document defines the testing direction for the backend codebase.
 
-## Priorities
+The goal is to keep regression risk low while the codebase evolves toward the target architecture.
 
-1. auth behavior
-2. merchant access boundary
-3. transaction-sensitive workflows
-4. inventory and cash calculations
+## Source of Truth
+
+For product behavior and persistence rules, the primary source of truth is:
+
+1. `docs-new/data/DATABASE_SCHEMA.md`
+2. `docs-new/engineering/screen-lists/`
+
+This document defines testing priorities, not product behavior.
+
+## Testing Priorities
+
+Prioritize tests in this order:
+
+1. Authentication behavior
+2. Merchant access boundaries
+3. Transaction-sensitive workflows
+4. Inventory, debt, and cash calculations
 
 ## Test Levels
 
 ### Unit Tests
 
-Focus on:
+Unit tests should focus on:
 
-- service business rules
-- error behavior
-- pure utility functions
+- Service business rules
+- Error behavior
+- Pure utility functions
+- Small isolated logic that does not require full request flow coverage
 
 ### Integration Tests
 
-Focus on:
+Integration tests should focus on:
 
-- route + middleware + controller + service + repository flow
-- merchant-scoped request handling
-- transaction success and rollback cases
+- Route, middleware, controller, service, repository, and database flow
+- Merchant-scoped request handling
+- Transaction success and rollback behavior
+- Multi-table workflows with important side effects
 
-## Recommended Early Coverage
+## Coverage Direction
 
-- `auth.service`
-- `auth.routes`
-- merchant middleware
-- supplier CRUD under merchant scope
-- purchase order write flow
-- stock usage and waste flow
-- debt payment flow
+Recommended early coverage includes:
 
-## Rule
+- `auth` behavior
+- Merchant middleware and merchant access checks
+- Supplier CRUD under merchant scope
+- Purchase order write flow
+- Stock usage and stock waste flows
+- Debt payment flow
 
-When a workflow updates more than one table, it should have at least one integration test for success and one for rollback behavior.
+## High-Risk Workflows
+
+The following workflows should be treated as high-risk and should receive integration coverage early:
+
+- Onboarding completion
+- Purchase order creation
+- Stock usage writes
+- Stock waste writes
+- Stock adjustment writes
+- Debt payment writes
+
+These workflows are high-risk because they coordinate multiple writes or update derived business state.
+
+## Testing Rules
+
+- When a workflow updates more than one table, it should have at least one integration test for success.
+- When a workflow updates more than one table, it should also have at least one integration test for rollback behavior.
+- Business rules should be testable from the service layer without depending on controller logic.
+- Merchant-scoped access checks should be covered explicitly, not assumed indirectly.
+
+## Scope Guidance
+
+Prefer unit tests when:
+
+- The rule is isolated
+- The logic is deterministic
+- The risk is local to one function or service
+
+Prefer integration tests when:
+
+- The request crosses multiple layers
+- Merchant scoping is involved
+- A transaction is involved
+- More than one table is updated
+
+## Summary
+
+The testing strategy is simple:
+
+- Test business rules at the smallest useful level
+- Add integration coverage for workflows with real cross-layer risk
+- Prioritize merchant boundaries and transactional safety
+
+If a workflow can leave data inconsistent when it fails, it should not rely on unit tests alone.
