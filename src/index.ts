@@ -3,15 +3,15 @@ import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
-import { sql, testConnection } from './config/database.config';
-import { env, isDevelopment } from './config/env.config';
-import { createLogger } from './config/logger.config';
-import { errorHandler, notFoundHandler } from './middleware/error-handler.middleware';
-import { requestLogger } from './middleware/logger.middleware';
-import { requestIdMiddleware } from './middleware/request-id.middleware';
-import { authRoutes } from './routes/public/auth.routes';
-import { authRoutesV1 } from './routes/v1/auth.routes';
-import type { AppEnv } from './types/context.types';
+import { env, isDevelopment } from './core/config/env.config';
+import { createLogger } from './core/config/logger.config';
+import { closeConnection, testConnection } from './core/db/client';
+import { requestLogger } from './core/middleware/logger.middleware';
+import { requestIdMiddleware } from './core/middleware/request-id.middleware';
+import { errorHandler, notFoundHandler } from './core/middleware/error-handler.middleware';
+import { authRoutes } from './modules/auth/auth.route';
+import { authRoutesV1 } from './modules/auth/auth-v1.route';
+import type { AppEnv } from './shared/types/context.types';
 
 const logger = createLogger({ module: 'server' });
 
@@ -142,7 +142,7 @@ const startServer = async (): Promise<void> => {
       server.stop();
 
       // Close database connections
-      await sql.end();
+      await closeConnection();
 
       logger.info('Server shutdown complete');
       process.exit(0);

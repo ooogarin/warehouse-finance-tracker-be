@@ -218,7 +218,7 @@ Use helper factories as the standard way to throw application errors.
 
 Recommended helpers:
 
-- `badRequestError`
+- `validationError`
 - `unauthorizedError`
 - `forbiddenError`
 - `notFoundError`
@@ -235,7 +235,7 @@ Service error rule:
 
 Typical intent:
 
-- `badRequestError` for invalid business input or invalid state transitions
+- `validationError` for invalid business input or invalid state transitions
 - `unauthorizedError` for authentication failures
 - `forbiddenError` for access-denied cases
 - `notFoundError` for missing resources
