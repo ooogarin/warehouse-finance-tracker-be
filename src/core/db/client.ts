@@ -16,13 +16,6 @@ export const sql = new SQL({
 });
 
 type ReservedSQL = Awaited<ReturnType<typeof sql.reserve>>;
-type Connection = SQL;
-
-// Execute a SQL query (non-transaction)
-export const query = async <T>(strings: TemplateStringsArray, ...values: unknown[]): Promise<T[]> => {
-  const result = await sql<T[]>(strings, ...values);
-  return result ?? [];
-};
 
 // Start a transaction
 export const startTransaction = async (): Promise<ReservedSQL> => {
@@ -77,4 +70,4 @@ export const closeConnection = async (): Promise<void> => {
   }
 };
 
-export type { SQL, ReservedSQL, Connection };
+export type { SQL, ReservedSQL };

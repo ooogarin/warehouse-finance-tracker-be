@@ -1,9 +1,9 @@
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { authenticate } from '@/core/middleware/auth.middleware';
-import type { AppEnv } from '@/shared/types/context.types';
 import * as authController from './auth.controller';
 import { changePasswordSchema, updateProfileSchema } from './auth.schema';
+import type { AppEnv } from '@/shared/types/context.types';
 
 const authRoutesV1 = new Hono<AppEnv>();
 

@@ -1,14 +1,14 @@
-import type { Context } from 'hono';
 import { successResponse } from '@/core/http/response';
 import { getBody } from '@/shared/utils/hono.util';
-import type { AppEnv } from '@/shared/types/context.types';
-import type { ChangePasswordInput, LoginInput, RegisterInput, UpdateProfileInput } from './auth.type';
 import * as authService from './auth.service';
+import type { Context } from 'hono';
+import type { AppEnv } from '@/shared/types/context.types';
+import type { ChangePasswordRequest, CreateUserRequest, GetUserRequest, LoginUserRequest, UpdateUserRequest } from './auth.type';
 
 // Register new user
 // POST /auth/register
 export const register = async (c: Context<AppEnv>) => {
-  const data = getBody<RegisterInput>(c);
+  const data = getBody<CreateUserRequest>(c);
 
   const result = await authService.register(data);
 
@@ -23,7 +23,7 @@ export const register = async (c: Context<AppEnv>) => {
 // Login user
 // POST /auth/login
 export const login = async (c: Context<AppEnv>) => {
-  const data = getBody<LoginInput>(c);
+  const data = getBody<LoginUserRequest>(c);
 
   const result = await authService.login(data);
 
@@ -39,7 +39,8 @@ export const login = async (c: Context<AppEnv>) => {
 export const getMe = async (c: Context<AppEnv>) => {
   const userId = c.get('userId');
 
-  const result = await authService.getMe(userId);
+  const request: GetUserRequest = { userId };
+  const result = await authService.getMe(request);
 
   return successResponse({
     context: c,
@@ -51,7 +52,7 @@ export const getMe = async (c: Context<AppEnv>) => {
 // PUT /v1/auth/profile
 export const updateProfile = async (c: Context<AppEnv>) => {
   const userId = c.get('userId');
-  const data = getBody<UpdateProfileInput>(c);
+  const data = getBody<UpdateUserRequest>(c);
 
   const result = await authService.updateProfile(userId, data);
 
@@ -66,7 +67,7 @@ export const updateProfile = async (c: Context<AppEnv>) => {
 // PUT /v1/auth/password
 export const changePassword = async (c: Context<AppEnv>) => {
   const userId = c.get('userId');
-  const data = getBody<ChangePasswordInput>(c);
+  const data = getBody<ChangePasswordRequest>(c);
 
   await authService.changePassword(userId, data);
 

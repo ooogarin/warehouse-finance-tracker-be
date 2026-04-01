@@ -3,17 +3,22 @@ import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
-import { env, isDevelopment } from './core/config/env.config';
-import { createLogger } from './core/config/logger.config';
-import { closeConnection, testConnection } from './core/db/client';
-import { requestLogger } from './core/middleware/logger.middleware';
-import { requestIdMiddleware } from './core/middleware/request-id.middleware';
-import { errorHandler, notFoundHandler } from './core/middleware/error-handler.middleware';
-import { authRoutes } from './modules/auth/auth.route';
-import { authRoutesV1 } from './modules/auth/auth-v1.route';
-import type { AppEnv } from './shared/types/context.types';
+import { env, isDevelopment } from '@/core/config/env.config';
+import { createLogger } from '@/core/config/logger.config';
+import { closeConnection, testConnection } from '@/core/db/client';
+import { errorHandler, notFoundHandler } from '@/core/middleware/error-handler.middleware';
+import { requestLogger } from '@/core/middleware/logger.middleware';
+import { requestIdMiddleware } from '@/core/middleware/request-id.middleware';
+import { authRoutes } from '@/modules/auth/auth.route';
+import { authRoutesV1 } from '@/modules/auth/auth-v1.route';
+import type { AppEnv } from '@/shared/types/context.types';
 
 const logger = createLogger({ module: 'server' });
+const APP_INFO = {
+  name: 'Warehouse & Finance Tracker API',
+  version: '1.0.0',
+  description: 'Warehouse & Finance Management API',
+};
 
 // Create and configure Hono application
 const createApp = () => {
@@ -58,7 +63,7 @@ const createApp = () => {
       {
         status: dbConnected ? 'healthy' : 'unhealthy',
         timestamp: new Date().toISOString(),
-        version: '1.0.0',
+        version: APP_INFO.version,
         services: {
           database: dbConnected ? 'connected' : 'disconnected',
         },
@@ -85,9 +90,9 @@ const createApp = () => {
   // ==========================================
   app.get('/', (c) => {
     return c.json({
-      name: 'Warehouse & Finance Tracker API',
-      version: '1.0.0',
-      description: 'Warehouse & Finance Management API',
+      name: APP_INFO.name,
+      version: APP_INFO.version,
+      description: APP_INFO.description,
       documentation: '/docs',
       health: '/health',
     });
@@ -151,7 +156,7 @@ const startServer = async (): Promise<void> => {
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
   } catch (error) {
-    logger.fatal({ error }, 'Failed to start server');
+    logger.fatal({ error: error instanceof Error ? error.message : error }, 'Failed to start server');
     process.exit(1);
   }
 };

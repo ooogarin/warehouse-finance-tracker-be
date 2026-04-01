@@ -1,10 +1,10 @@
-import type { ReservedSQL } from '@/core/db/client';
 import { sql } from '@/core/db/client';
-import type { UserDbInsertPayload, UserDbRow, UserDbUpdatePayload } from './auth.type';
+import type { ReservedSQL } from '@/core/db/client';
+import type { UserInsertPayload, UserRow, UserUpdatePayload } from './auth.type';
 
 // Get user by ID
-export const getOneById = async (id: string): Promise<UserDbRow | null> => {
-  const [result] = await sql<UserDbRow[]>`
+export const getOneById = async (id: string): Promise<UserRow | null> => {
+  const [result] = await sql<UserRow[]>`
     SELECT
       id,
       name,
@@ -25,8 +25,8 @@ export const getOneById = async (id: string): Promise<UserDbRow | null> => {
 };
 
 // Get user by email
-export const getOneByEmail = async (email: string): Promise<UserDbRow | null> => {
-  const [result] = await sql<UserDbRow[]>`
+export const getOneByEmail = async (email: string): Promise<UserRow | null> => {
+  const [result] = await sql<UserRow[]>`
     SELECT
       id,
       name,
@@ -61,10 +61,10 @@ export const existsByEmail = async (email: string): Promise<boolean> => {
 };
 
 // Insert new user
-export const insert = async (connection: ReservedSQL, payload: UserDbInsertPayload): Promise<UserDbRow> => {
+export const insert = async (connection: ReservedSQL, payload: UserInsertPayload): Promise<UserRow> => {
   const allowedColumns = ['id', 'name', 'email', 'password', 'role', 'phone'] as const;
 
-  const [result] = await connection<UserDbRow[]>`
+  const [result] = await connection<UserRow[]>`
     INSERT INTO users ${sql(payload, ...allowedColumns)}
     RETURNING
       id,
@@ -79,17 +79,17 @@ export const insert = async (connection: ReservedSQL, payload: UserDbInsertPaylo
   `;
 
   if (!result) {
-    throw new Error('Insert failed: no row returned');
+    throw new Error('User insert failed');
   }
 
   return result;
 };
 
 // Update user by ID
-export const updateById = async (connection: ReservedSQL, id: string, payload: UserDbUpdatePayload): Promise<UserDbRow> => {
+export const updateById = async (connection: ReservedSQL, id: string, payload: UserUpdatePayload): Promise<UserRow | null> => {
   const allowedColumns = ['name', 'phone'] as const;
 
-  const [result] = await connection<UserDbRow[]>`
+  const [result] = await connection<UserRow[]>`
     UPDATE users
     SET
       ${sql(payload, ...allowedColumns)},
@@ -108,15 +108,11 @@ export const updateById = async (connection: ReservedSQL, id: string, payload: U
       deleted_at
   `;
 
-  if (!result) {
-    throw new Error('Update failed: user not found or already deleted');
-  }
-
-  return result;
+  return result ?? null;
 };
 
 // Update password
-export const updatePasswordById = async (connection: ReservedSQL, id: string, password: string): Promise<void> => {
+export const updatePasswordById = async (connection: ReservedSQL, id: string, password: string): Promise<boolean> => {
   const [result] = await connection<{ id: string }[]>`
     UPDATE users
     SET
@@ -127,22 +123,5 @@ export const updatePasswordById = async (connection: ReservedSQL, id: string, pa
     RETURNING id
   `;
 
-  if (!result) {
-    throw new Error('Update password failed: user not found or already deleted');
-  }
-};
-
-// Soft delete user
-export const softDeleteById = async (connection: ReservedSQL, id: string): Promise<void> => {
-  const [result] = await connection<{ id: string }[]>`
-    UPDATE users
-    SET deleted_at = CURRENT_TIMESTAMP
-    WHERE id = ${id}
-      AND deleted_at IS NULL
-    RETURNING id
-  `;
-
-  if (!result) {
-    throw new Error('Soft delete failed: user not found or already deleted');
-  }
+  return Boolean(result);
 };

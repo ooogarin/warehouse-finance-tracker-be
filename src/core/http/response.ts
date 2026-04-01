@@ -1,15 +1,11 @@
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { createLogger } from '@/core/config/logger.config';
 import { APP_ERROR_CODES } from '@/shared/constants/error-codes.constant';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import type { AppErrorCode } from '@/shared/constants/error-codes.constant';
 import type { ApiResponse, PaginationMeta } from '@/shared/types/common.types';
 import type { AppContext } from '@/shared/types/context.types';
 
 const logger = createLogger({ module: 'response' });
-
-// Generate unique request ID
-export const generateRequestId = (): string => {
-  return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-};
 
 // Success response
 export const successResponse = <T>({
@@ -25,27 +21,23 @@ export const successResponse = <T>({
   pagination?: PaginationMeta;
   statusCode?: ContentfulStatusCode;
 }): Response => {
-  const requestId = context.get('requestId') || generateRequestId();
-  const timestamp = new Date().toISOString();
+  const meta = createResponseMeta(context);
 
   const response: ApiResponse<T> = {
     success: true,
     data,
     message: message ?? 'Success',
     ...(pagination && { pagination }),
-    meta: {
-      requestId,
-      timestamp,
-    },
+    meta,
   };
 
-  logger.debug({ requestId, statusCode, path: context.req.path, method: context.req.method }, 'Response sent');
+  logger.debug({ requestId: meta.requestId, statusCode, path: context.req.path, method: context.req.method }, 'Response sent');
 
   return context.json(response, statusCode);
 };
 
-// Failed response
-export const failedResponse = ({
+// Error response
+export const errorResponse = ({
   context,
   message,
   statusCode = 500,
@@ -55,62 +47,39 @@ export const failedResponse = ({
   context: AppContext;
   message: string;
   statusCode?: ContentfulStatusCode;
-  code?: string;
+  code?: AppErrorCode;
   details?: unknown;
 }): Response => {
-  const requestId = context.get('requestId') || generateRequestId();
-  const timestamp = new Date().toISOString();
+  const meta = createResponseMeta(context);
 
-  logger.warn({ requestId, statusCode, code, path: context.req.path, method: context.req.method, message }, 'Error response');
+  logger.warn(
+    { requestId: meta.requestId, statusCode, code, path: context.req.path, method: context.req.method, message },
+    'Error response',
+  );
 
-  const errorObj: { code: string; message: string; details?: unknown } = { code, message };
+  const errorObj: { code: AppErrorCode; message: string; details?: unknown } = { code, message };
   if (details) {
     errorObj.details = details;
   }
 
   const response: ApiResponse<never> = {
     success: false,
-    data: undefined as never,
     message,
     error: errorObj,
-    meta: {
-      requestId,
-      timestamp,
-    },
+    meta,
   };
 
   return context.json(response, statusCode);
 };
 
-// Error response alias for backward compatibility
-export const errorResponse = failedResponse;
+// Generate unique request ID
+export const generateRequestId = (): string => {
+  return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+};
 
-// Create pagination metadata
-export const createPaginationMeta = (page: number, limit: number, total: number): PaginationMeta => {
-  const totalPages = Math.ceil(total / limit);
-  const hasNextPage = page < totalPages;
-  const hasPrevPage = page > 1;
-
+const createResponseMeta = (context: AppContext): { requestId: string; timestamp: string } => {
   return {
-    page,
-    limit,
-    total,
-    total_pages: totalPages,
-    has_next_page: hasNextPage,
-    has_prev_page: hasPrevPage,
+    requestId: context.get('requestId') || generateRequestId(),
+    timestamp: new Date().toISOString(),
   };
-};
-
-// Parse pagination params from query
-export const parsePaginationParams = (query: { page?: string; limit?: string }): { page: number; limit: number } => {
-  const page = Math.max(1, parseInt(query.page ?? '1', 10));
-  const limit = Math.min(100, Math.max(1, parseInt(query.limit ?? '20', 10)));
-  return { page, limit };
-};
-
-// Parse sort params from query
-export const parseSortParams = (query: { sort?: string; order?: string }): { field: string; order: 'asc' | 'desc' } => {
-  const field = query.sort ?? 'created_at';
-  const order = query.order === 'desc' ? 'desc' : 'asc';
-  return { field, order };
 };

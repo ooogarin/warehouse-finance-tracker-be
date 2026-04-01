@@ -1,15 +1,34 @@
 import { logger } from '@/core/config/logger.config';
-import { commitTransaction, type ReservedSQL, rollbackTransaction, startTransaction } from '@/core/db/client';
+import { commitTransaction, rollbackTransaction, startTransaction } from '@/core/db/client';
 import { conflictError, internalError, isAppError, notFoundError, unauthorizedError } from '@/core/errors/app-error';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
 import { USER_ROLES } from '@/shared/constants/roles.constant';
 import { generateUUID, hashPassword, verifyPassword } from '@/shared/utils/crypto.util';
 import { generateToken } from '@/shared/utils/jwt.util';
 import * as authRepository from './auth.repository';
-import type { ChangePasswordInput, LoginInput, RegisterInput, UpdateProfileInput } from './auth.type';
+import type { ReservedSQL } from '@/core/db/client';
+import type {
+  ChangePasswordRequest,
+  CreateUserRequest,
+  GetUserRequest,
+  LoginUserRequest,
+  UpdateUserRequest,
+  UserMap,
+  UserRow,
+} from './auth.type';
+
+const toUserMap = (user: UserRow): UserMap => {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    phone: user.phone,
+  };
+};
 
 // Register new user
-export const register = async (data: RegisterInput) => {
+export const register = async (data: CreateUserRequest) => {
   let connection: ReservedSQL | null = null;
 
   try {
@@ -34,10 +53,8 @@ export const register = async (data: RegisterInput) => {
       phone: data.phone,
     };
 
-    // Insert user
     const user = await authRepository.insert(connection, payload);
 
-    // Commit transaction
     await commitTransaction(connection);
 
     logger.info({ userId: user.id }, 'User registered successfully');
@@ -51,12 +68,7 @@ export const register = async (data: RegisterInput) => {
 
     return {
       access_token: accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      user: toUserMap(user),
     };
   } catch (error) {
     if (connection) {
@@ -64,6 +76,11 @@ export const register = async (data: RegisterInput) => {
     }
 
     logger.error({ error, email: data.email }, 'Failed to register user');
+
+    if (isEmailUniqueViolation(error)) {
+      throw conflictError(APP_ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
+    }
+
     if (error instanceof Error && isAppError(error)) {
       throw error;
     }
@@ -72,58 +89,59 @@ export const register = async (data: RegisterInput) => {
 };
 
 // Login user
-export const login = async (data: LoginInput) => {
-  // Get user by email
-  const user = await authRepository.getOneByEmail(data.email);
-  if (!user) {
-    throw unauthorizedError(APP_ERROR_MESSAGES.INVALID_CREDENTIALS);
-  }
+export const login = async (data: LoginUserRequest) => {
+  try {
+    const user = await authRepository.getOneByEmail(data.email);
+    if (!user) {
+      throw unauthorizedError(APP_ERROR_MESSAGES.INVALID_CREDENTIALS);
+    }
 
-  // Verify password
-  const isValid = await verifyPassword(data.password, user.password);
-  if (!isValid) {
-    throw unauthorizedError(APP_ERROR_MESSAGES.INVALID_CREDENTIALS);
-  }
+    const isValid = await verifyPassword(data.password, user.password);
+    if (!isValid) {
+      throw unauthorizedError(APP_ERROR_MESSAGES.INVALID_CREDENTIALS);
+    }
 
-  // Generate JWT token
-  const accessToken = await generateToken({
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
-  logger.info({ userId: user.id }, 'User logged in successfully');
-
-  return {
-    access_token: accessToken,
-    user: {
-      id: user.id,
+    const accessToken = await generateToken({
+      userId: user.id,
       email: user.email,
-      name: user.name,
       role: user.role,
-    },
-  };
+    });
+
+    logger.info({ userId: user.id }, 'User logged in successfully');
+
+    return {
+      access_token: accessToken,
+      user: toUserMap(user),
+    };
+  } catch (error) {
+    logger.error({ error, email: data.email }, 'Failed to login user');
+    if (error instanceof Error && isAppError(error)) {
+      throw error;
+    }
+    throw internalError('Failed to login user');
+  }
 };
 
 // Get current user
-export const getMe = async (userId: string) => {
-  // Get user by ID
-  const user = await authRepository.getOneById(userId);
-  if (!user) {
-    throw notFoundError(APP_ERROR_MESSAGES.USER_NOT_FOUND);
-  }
+export const getMe = async ({ userId }: GetUserRequest): Promise<UserMap> => {
+  try {
+    const user = await authRepository.getOneById(userId);
+    if (!user) {
+      throw notFoundError(APP_ERROR_MESSAGES.USER_NOT_FOUND);
+    }
 
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    phone: user.phone,
-  };
+    return toUserMap(user);
+  } catch (error) {
+    logger.error({ error, userId }, 'Failed to fetch current user');
+    if (error instanceof Error && isAppError(error)) {
+      throw error;
+    }
+    throw internalError('Failed to get current user');
+  }
 };
 
 // Update profile
-export const updateProfile = async (userId: string, data: UpdateProfileInput) => {
+export const updateProfile = async (userId: string, data: UpdateUserRequest): Promise<UserMap> => {
   let connection: ReservedSQL | null = null;
 
   try {
@@ -135,19 +153,16 @@ export const updateProfile = async (userId: string, data: UpdateProfileInput) =>
       name: data.name,
       phone: data.phone,
     });
+    if (!user) {
+      throw notFoundError(APP_ERROR_MESSAGES.USER_NOT_FOUND);
+    }
 
     // Commit transaction
     await commitTransaction(connection);
 
     logger.info({ userId }, 'Profile updated successfully');
 
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      phone: user.phone,
-    };
+    return toUserMap(user);
   } catch (error) {
     if (connection) {
       await rollbackTransaction(connection);
@@ -162,7 +177,7 @@ export const updateProfile = async (userId: string, data: UpdateProfileInput) =>
 };
 
 // Change password
-export const changePassword = async (userId: string, data: ChangePasswordInput): Promise<void> => {
+export const changePassword = async (userId: string, data: ChangePasswordRequest): Promise<void> => {
   let connection: ReservedSQL | null = null;
 
   try {
@@ -185,7 +200,10 @@ export const changePassword = async (userId: string, data: ChangePasswordInput):
     connection = await startTransaction();
 
     // Update password
-    await authRepository.updatePasswordById(connection, userId, hashedPassword);
+    const isUpdated = await authRepository.updatePasswordById(connection, userId, hashedPassword);
+    if (!isUpdated) {
+      throw notFoundError(APP_ERROR_MESSAGES.USER_NOT_FOUND);
+    }
 
     // Commit transaction
     await commitTransaction(connection);
@@ -202,4 +220,29 @@ export const changePassword = async (userId: string, data: ChangePasswordInput):
     }
     throw internalError('Failed to change password');
   }
+};
+
+// ====================================================================================================
+// Funtions
+// ====================================================================================================
+
+// Helper function to check if error is a unique constraint violation for email
+const isEmailUniqueViolation = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const dbError = error as {
+    code?: string;
+    constraint?: string;
+    detail?: string;
+    message?: string;
+  };
+
+  if (dbError.code === '23505') {
+    return true;
+  }
+
+  const text = [dbError.constraint, dbError.detail, dbError.message].filter(Boolean).join(' ').toLowerCase();
+  return text.includes('idx_users_email_unique') || text.includes('users_email_key') || (text.includes('unique') && text.includes('email'));
 };

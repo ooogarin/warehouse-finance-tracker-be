@@ -15,10 +15,14 @@ export const loginSchema = z.object({
 });
 
 // Update profile schema
-export const updateProfileSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be at most 100 characters').optional(),
-  phone: z.string().max(20, 'Phone must be at most 20 characters').optional(),
-});
+export const updateProfileSchema = z
+  .object({
+    name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be at most 100 characters').optional(),
+    phone: z.string().max(20, 'Phone must be at most 20 characters').optional(),
+  })
+  .refine((data) => data.name !== undefined || data.phone !== undefined, {
+    message: 'At least one field must be provided',
+  });
 
 // Change password schema
 export const changePasswordSchema = z.object({

@@ -1,8 +1,7 @@
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import { APP_ERROR_CODES } from '@/shared/constants/error-codes.constant';
-import type { AppErrorCode } from '@/shared/constants/error-codes.constant';
-import { getStatusCodeForAppError } from '@/shared/constants/error-codes.constant';
+import { APP_ERROR_CODES, getStatusCodeForAppError } from '@/shared/constants/error-codes.constant';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import type { AppErrorCode } from '@/shared/constants/error-codes.constant';
 
 type ErrorDetail = { field: string; message: string };
 
@@ -28,14 +27,6 @@ export class AppError extends Error {
   }
 }
 
-// Utility function to check if an error is operational (i.e., expected and handled gracefully)
-export const isOperationalError = (error: Error): boolean => {
-  if (error instanceof AppError) {
-    return error.isOperational;
-  }
-  return false;
-};
-
 // Type guard to check if an error is an instance of AppError
 export const isAppError = (error: Error): error is AppError => {
   return error instanceof AppError;
@@ -52,18 +43,26 @@ export const unauthorizedError = (message: string = APP_ERROR_MESSAGES.UNAUTHORI
   return new AppError(APP_ERROR_CODES.UNAUTHORIZED, message);
 };
 
+export const invalidTokenError = (message: string = APP_ERROR_MESSAGES.INVALID_TOKEN): AppError => {
+  return new AppError(APP_ERROR_CODES.INVALID_TOKEN, message);
+};
+
+export const tokenExpiredError = (message: string = APP_ERROR_MESSAGES.TOKEN_EXPIRED): AppError => {
+  return new AppError(APP_ERROR_CODES.TOKEN_EXPIRED, message);
+};
+
 export const forbiddenError = (message: string = APP_ERROR_MESSAGES.FORBIDDEN): AppError => {
   return new AppError(APP_ERROR_CODES.FORBIDDEN, message);
 };
 
-export const notFoundError = (message: string = APP_ERROR_MESSAGES.UNKNOWN_ERROR): AppError => {
+export const notFoundError = (message: string = APP_ERROR_MESSAGES.NOT_FOUND): AppError => {
   return new AppError(APP_ERROR_CODES.NOT_FOUND, message);
 };
 
-export const conflictError = (message: string = APP_ERROR_MESSAGES.UNKNOWN_ERROR): AppError => {
+export const conflictError = (message: string = APP_ERROR_MESSAGES.CONFLICT): AppError => {
   return new AppError(APP_ERROR_CODES.CONFLICT, message);
 };
 
-export const internalError = (message: string = APP_ERROR_MESSAGES.UNKNOWN_ERROR): AppError => {
+export const internalError = (message: string = APP_ERROR_MESSAGES.INTERNAL_ERROR): AppError => {
   return new AppError(APP_ERROR_CODES.INTERNAL_ERROR, message, undefined, false);
 };

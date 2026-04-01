@@ -1,10 +1,9 @@
-import type { Context, MiddlewareHandler as HonoMiddlewareHandler } from 'hono';
+import type { Context } from 'hono';
 import type { UserRole } from '@/shared/constants/roles.constant';
-import type { UUID } from './common.types';
 
 // Authenticated user information stored in context
 export interface AuthUser {
-  id: UUID;
+  id: string;
   email: string;
   name: string;
   role: UserRole;
@@ -12,17 +11,9 @@ export interface AuthUser {
 
 // Merchant context information
 export interface MerchantContext {
-  id: UUID;
+  id: string;
   name: string;
   user_role: UserRole;
-}
-
-// Refresh token payload
-export interface RefreshTokenPayload {
-  userId: UUID;
-  jti: UUID; // token id for revocation
-  iat: number;
-  exp: number;
 }
 
 /**
@@ -31,12 +22,12 @@ export interface RefreshTokenPayload {
  */
 export interface AppVariables {
   // Auth
-  userId: UUID;
+  userId: string;
   user: AuthUser;
   token: string;
 
   // Merchant
-  merchantId: UUID;
+  merchantId: string;
   merchant: MerchantContext;
 
   // Request metadata
@@ -56,12 +47,3 @@ export type AppEnv = {
 
 // Extended Hono context type for the application
 export type AppContext = Context<AppEnv>;
-
-/**
- * Context getter types
- * Type-safe access to context variables
- */
-export type GetContextVariable<K extends keyof AppVariables> = AppVariables[K];
-
-// Middleware handler type
-export type MiddlewareHandler = HonoMiddlewareHandler<AppEnv>;
