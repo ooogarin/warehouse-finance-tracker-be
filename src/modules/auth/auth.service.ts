@@ -17,16 +17,6 @@ import type {
   UserRow,
 } from './auth.type';
 
-const toUserMap = (user: UserRow): UserMap => {
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    phone: user.phone,
-  };
-};
-
 // Register new user
 export const register = async (data: CreateUserRequest) => {
   let connection: ReservedSQL | null = null;
@@ -245,4 +235,15 @@ const isEmailUniqueViolation = (error: unknown): boolean => {
 
   const text = [dbError.constraint, dbError.detail, dbError.message].filter(Boolean).join(' ').toLowerCase();
   return text.includes('idx_users_email_unique') || text.includes('users_email_key') || (text.includes('unique') && text.includes('email'));
+};
+
+// Helper function to map UserRow to UserMap
+const toUserMap = (user: UserRow): UserMap => {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    phone: user.phone,
+  };
 };

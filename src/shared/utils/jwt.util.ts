@@ -5,7 +5,7 @@ import type { JwtPayload } from '@/modules/auth/auth.type';
 // Generate JWT token
 export const generateToken = async (payload: Omit<JwtPayload, 'iat' | 'exp'>): Promise<string> => {
   const now = Math.floor(Date.now() / 1000);
-  const exp = now + 24 * 60 * 60; // 24 hours
+  const exp = now + env.JWT_EXPIRY;
 
   const jwtPayload: JwtPayload = {
     ...payload,
