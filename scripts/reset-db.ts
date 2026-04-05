@@ -93,7 +93,7 @@ const resetDatabase = async (): Promise<void> => {
     }
 
     logger.info('✅ Database reset complete');
-    logger.info("Run 'bun run migrate' to recreate tables");
+    logger.info("Run 'bun run db:migrate' to recreate tables");
   } catch (error) {
     logger.error(`Reset failed: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);

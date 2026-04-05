@@ -117,6 +117,47 @@ Controllers must not:
 - Access the database directly
 - Start or manage transactions
 
+### Response Contract
+
+Responses should use one consistent envelope.
+
+Success shape:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Success",
+  "meta": {
+    "requestId": "req_xxx",
+    "timestamp": "2026-04-05T00:00:00.000Z"
+  }
+}
+```
+
+Error shape:
+
+```json
+{
+  "success": false,
+  "message": "Resource not found",
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Resource not found"
+  },
+  "meta": {
+    "requestId": "req_xxx",
+    "timestamp": "2026-04-05T00:00:00.000Z"
+  }
+}
+```
+
+Response rules:
+
+- Action-only endpoints may return `data: null`.
+- Resource endpoints should return explicit operation maps (`*Map`) in `data`.
+- Controllers own HTTP response formatting through shared response helpers.
+
 ### Service
 
 Services should:

@@ -54,6 +54,12 @@ Controllers should:
 - Call services
 - Return formatted responses
 
+Response contract rule:
+
+- Use shared response helpers to keep one response envelope across endpoints.
+- For action-only operations, return `data: null` instead of unrelated identifiers.
+- Keep response `message` explicit for user-facing success flows.
+
 Controllers must not:
 
 - Implement business rules

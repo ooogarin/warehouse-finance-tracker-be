@@ -3,9 +3,9 @@
  * Database Migration Runner
  *
  * Usage:
- *   bun run migrate              # Run all pending migrations
- *   bun run migrate --rollback   # Rollback last migration
- *   bun run migrate --status     # Show migration status
+ *   bun run db:migrate              # Run all pending migrations
+ *   bun run db:rollback             # Rollback last migration
+ *   bun run db:status               # Show migration status
  */
 
 import { readdir } from 'node:fs/promises';
@@ -233,7 +233,7 @@ const main = async (): Promise<void> => {
       case '--run': {
         const filename = args[1];
         if (!filename) {
-          logger.error('Filename required. Usage: bun run migrate --run 003_create_table_merchants.ts');
+          logger.error('Filename required. Usage: bun run db:migrate:select 003_create_table_merchants.ts');
           process.exit(1);
         }
 

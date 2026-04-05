@@ -13,6 +13,7 @@ import type {
   GetUserRequest,
   LoginUserRequest,
   UpdateUserRequest,
+  UserInsertPayload,
   UserMap,
   UserRow,
 } from './auth.type';
@@ -34,7 +35,7 @@ export const register = async (data: CreateUserRequest) => {
     // Start transaction
     connection = await startTransaction();
 
-    const payload = {
+    const payload: UserInsertPayload = {
       id: userId,
       name: data.name,
       email: data.email,
@@ -71,7 +72,7 @@ export const register = async (data: CreateUserRequest) => {
       throw conflictError(APP_ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
     }
 
-    if (error instanceof Error && isAppError(error)) {
+    if (isAppError(error)) {
       throw error;
     }
     throw internalError('Failed to register user');
@@ -105,7 +106,7 @@ export const login = async (data: LoginUserRequest) => {
     };
   } catch (error) {
     logger.error({ error, email: data.email }, 'Failed to login user');
-    if (error instanceof Error && isAppError(error)) {
+    if (isAppError(error)) {
       throw error;
     }
     throw internalError('Failed to login user');
@@ -123,7 +124,7 @@ export const getMe = async ({ userId }: GetUserRequest): Promise<UserMap> => {
     return toUserMap(user);
   } catch (error) {
     logger.error({ error, userId }, 'Failed to fetch current user');
-    if (error instanceof Error && isAppError(error)) {
+    if (isAppError(error)) {
       throw error;
     }
     throw internalError('Failed to get current user');
@@ -159,7 +160,7 @@ export const updateProfile = async (userId: string, data: UpdateUserRequest): Pr
     }
 
     logger.error({ error, userId }, 'Failed to update profile');
-    if (error instanceof Error && isAppError(error)) {
+    if (isAppError(error)) {
       throw error;
     }
     throw internalError('Failed to update profile');
@@ -205,7 +206,7 @@ export const changePassword = async (userId: string, data: ChangePasswordRequest
     }
 
     logger.error({ error, userId }, 'Failed to change password');
-    if (error instanceof Error && isAppError(error)) {
+    if (isAppError(error)) {
       throw error;
     }
     throw internalError('Failed to change password');
@@ -229,11 +230,12 @@ const isEmailUniqueViolation = (error: unknown): boolean => {
     message?: string;
   };
 
-  if (dbError.code === '23505') {
-    return true;
+  const text = [dbError.constraint, dbError.detail, dbError.message].filter(Boolean).join(' ').toLowerCase();
+
+  if (dbError.code !== '23505') {
+    return false;
   }
 
-  const text = [dbError.constraint, dbError.detail, dbError.message].filter(Boolean).join(' ').toLowerCase();
   return text.includes('idx_users_email_unique') || text.includes('users_email_key') || (text.includes('unique') && text.includes('email'));
 };
 

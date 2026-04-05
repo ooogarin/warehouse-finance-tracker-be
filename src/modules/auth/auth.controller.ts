@@ -1,13 +1,12 @@
 import { successResponse } from '@/core/http/response';
 import { getBody } from '@/shared/utils/hono.util';
 import * as authService from './auth.service';
-import type { Context } from 'hono';
-import type { AppEnv } from '@/shared/types/context.types';
-import type { ChangePasswordRequest, CreateUserRequest, GetUserRequest, LoginUserRequest, UpdateUserRequest } from './auth.type';
+import type { AppContext } from '@/shared/types/context.types';
+import type { ChangePasswordRequest, CreateUserRequest, LoginUserRequest, UpdateUserRequest } from './auth.type';
 
 // Register new user
 // POST /auth/register
-export const register = async (c: Context<AppEnv>) => {
+export const register = async (c: AppContext) => {
   const data = getBody<CreateUserRequest>(c);
 
   const result = await authService.register(data);
@@ -22,7 +21,7 @@ export const register = async (c: Context<AppEnv>) => {
 
 // Login user
 // POST /auth/login
-export const login = async (c: Context<AppEnv>) => {
+export const login = async (c: AppContext) => {
   const data = getBody<LoginUserRequest>(c);
 
   const result = await authService.login(data);
@@ -36,21 +35,20 @@ export const login = async (c: Context<AppEnv>) => {
 
 // Get current user profile
 // GET /v1/auth/me
-export const getMe = async (c: Context<AppEnv>) => {
+export const getMe = async (c: AppContext) => {
   const userId = c.get('userId');
-
-  const request: GetUserRequest = { userId };
-  const result = await authService.getMe(request);
+  const result = await authService.getMe({ userId });
 
   return successResponse({
     context: c,
     data: result,
+    message: 'Current user fetched successfully',
   });
 };
 
 // Update user profile
 // PUT /v1/auth/profile
-export const updateProfile = async (c: Context<AppEnv>) => {
+export const updateProfile = async (c: AppContext) => {
   const userId = c.get('userId');
   const data = getBody<UpdateUserRequest>(c);
 
@@ -65,7 +63,7 @@ export const updateProfile = async (c: Context<AppEnv>) => {
 
 // Change password
 // PUT /v1/auth/password
-export const changePassword = async (c: Context<AppEnv>) => {
+export const changePassword = async (c: AppContext) => {
   const userId = c.get('userId');
   const data = getBody<ChangePasswordRequest>(c);
 
@@ -73,7 +71,7 @@ export const changePassword = async (c: Context<AppEnv>) => {
 
   return successResponse({
     context: c,
-    data: userId,
+    data: null,
     message: 'Password changed successfully',
   });
 };

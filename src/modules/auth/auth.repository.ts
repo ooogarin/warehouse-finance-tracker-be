@@ -48,16 +48,17 @@ export const getOneByEmail = async (email: string): Promise<UserRow | null> => {
 
 // Check if email exists
 export const existsByEmail = async (email: string): Promise<boolean> => {
-  const [result] = await sql<{ count: number }[]>`
+  const [result] = await sql<{ exists: boolean }[]>`
     SELECT
-      COUNT(*) as count
-    FROM users
-    WHERE email = ${email}
-      AND deleted_at IS NULL
-    LIMIT 1
+      EXISTS (
+        SELECT 1
+        FROM users
+        WHERE email = ${email}
+          AND deleted_at IS NULL
+      ) AS exists
   `;
 
-  return result.count > 0;
+  return Boolean(result?.exists);
 };
 
 // Insert new user

@@ -33,7 +33,11 @@ const envSchema = z.object({
     .transform((v) => Number(v))
     .refine((v) => Number.isInteger(v) && v > 0, 'JWT_EXPIRY must be a positive integer (seconds)'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
-  JWT_REFRESH_EXPIRY: z.string().default('7d'),
+  JWT_REFRESH_EXPIRY: z
+    .string()
+    .default('604800')
+    .transform((v) => Number(v))
+    .refine((v) => Number.isInteger(v) && v > 0, 'JWT_REFRESH_EXPIRY must be a positive integer (seconds)'),
 
   // Logging
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),

@@ -3,8 +3,9 @@
  * Database Seeder
  *
  * Usage:
- *   bun run seed              # Seed database with sample data
- *   bun run seed --reset      # Reset and reseed
+ *   bun run db:seed                 # Seed database with sample data
+ *   bun run db:seed --reset         # Reset and reseed
+ *   bun run db:seed --reset-only    # Reset data only
  */
 
 import { SQL, password } from 'bun';
@@ -161,6 +162,10 @@ const reset = async (sql: SQL): Promise<void> => {
     'debts',
     'cash_logs',
     'stock_logs',
+    'stock_adjustment_items',
+    'stock_adjustments',
+    'stock_usage_items',
+    'stock_usages',
     'purchase_order_items',
     'purchase_orders',
     'ingredient_batches',

@@ -3,7 +3,7 @@ import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { AppErrorCode } from '@/shared/constants/error-codes.constant';
 
-type ErrorDetail = { field: string; message: string };
+export type ErrorDetail = { field: string; message: string };
 
 /**
  * Custom application error class
@@ -27,8 +27,7 @@ export class AppError extends Error {
   }
 }
 
-// Type guard to check if an error is an instance of AppError
-export const isAppError = (error: Error): error is AppError => {
+export const isAppError = (error: unknown): error is AppError => {
   return error instanceof AppError;
 };
 
