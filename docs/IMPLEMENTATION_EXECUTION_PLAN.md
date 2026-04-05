@@ -27,6 +27,31 @@ Current backend code snapshot used for this audit:
   - `GET /v1/auth/me`
   - `PUT /v1/auth/profile`
   - `PUT /v1/auth/password`
+- Merchant scope foundation:
+  - `resolveMerchantContext` middleware with `X-Merchant-ID` access validation
+- Onboarding:
+  - `GET /v1/onboarding/status`
+  - `POST /v1/onboarding/complete` (single transaction)
+- Merchants:
+  - `GET /v1/merchants`
+  - `GET /v1/merchants/current`
+- Suppliers:
+  - `GET /v1/suppliers`
+  - `POST /v1/suppliers`
+  - `GET /v1/suppliers/:id`
+  - `PATCH /v1/suppliers/:id`
+  - `DELETE /v1/suppliers/:id` (soft delete)
+- Ingredients:
+  - `GET /v1/ingredients`
+  - `POST /v1/ingredients`
+  - `GET /v1/ingredients/:id`
+  - `PATCH /v1/ingredients/:id`
+  - `DELETE /v1/ingredients/:id` (hard delete when unused)
+  - `PATCH /v1/ingredients/:id/activate`
+  - `PATCH /v1/ingredients/:id/deactivate`
+  - `POST /v1/ingredients/:id/units`
+  - `PATCH /v1/ingredients/:id/units/:unitId`
+  - `DELETE /v1/ingredients/:id/units/:unitId`
 - Core runtime:
   - Global error handling
   - JWT auth middleware
@@ -36,11 +61,7 @@ Current backend code snapshot used for this audit:
 
 ### What Is Not Implemented Yet (API Layer)
 
-- Onboarding completion flow
-- Merchant context resolution (`X-Merchant-ID`) middleware
 - Merchant settings endpoints
-- Suppliers module
-- Ingredients module
 - Purchase orders module
 - Stock modules
 - Cash module
@@ -60,8 +81,8 @@ Status legend:
 |---|---|---|
 | `SCREEN_LIST_01_AUTH.md` | PARTIAL | Login covered. Forgot-password and reset-password flow not implemented. |
 | `SCREEN_LIST_02_ONBOARDING.md` | DONE | Register + onboarding status + complete flow are implemented. Step 2-4 are handled via one completion payload and one transaction. |
-| `SCREEN_LIST_03_SUPPLIERS.md` | NOT STARTED | No suppliers module/routes yet. |
-| `SCREEN_LIST_04_INGREDIENTS.md` | NOT STARTED | No ingredients module/routes yet. |
+| `SCREEN_LIST_03_SUPPLIERS.md` | DONE | Supplier list/create/detail/update/archive endpoints are implemented. |
+| `SCREEN_LIST_04_INGREDIENTS.md` | PARTIAL | Ingredient list/create/detail/update, status actions, and unit CRUD are implemented. Detail usage flags and base-unit edit safeguards are implemented. Remaining scope is broader lifecycle completeness (for example delete/archive flow and full operational integration with stock/purchase modules). |
 | `SCREEN_LIST_05_PURCHASE_ORDERS.md` | NOT STARTED | No purchase-orders module/routes yet. |
 | `SCREEN_LIST_06_01_STOCK_MONITORING.md` | NOT STARTED | No stock monitoring endpoints yet. |
 | `SCREEN_LIST_06_02_STOCK_USAGE.md` | NOT STARTED | No stock usage endpoints yet. |
@@ -75,22 +96,21 @@ Status legend:
 
 ## Gap Analysis (Highest Impact First)
 
-1. Merchant-scoped foundation is missing.
-   - Many screen lists assume merchant-level isolation.
-   - We need merchant context middleware and access checks before most domain modules.
-
-2. Onboarding completion flow is missing.
-   - This blocks first-time setup path from screen-list perspective.
-   - It is also the first multi-table transaction flow.
-
-3. Merchant settings API is missing.
+1. Merchant settings API is missing.
    - Required by `SCR-SET-02`.
 
-4. Core operational modules are missing.
-   - Suppliers, ingredients, purchase orders, stock, cash, debt.
+2. Purchase order and stock operations are missing.
+   - Required to unlock inventory and costing flows used by dashboard and reports.
 
-5. Read-model endpoints are missing.
-   - Dashboard and reports depend on upstream operational modules.
+3. Financial modules are missing.
+   - Cash and debt modules are still not implemented.
+
+4. Read-model endpoints are missing.
+   - Dashboard and reports depend on operational modules and aggregation queries.
+
+5. Ingredient lifecycle completeness is still partial.
+   - Advanced rules for detail/edit are covered.
+   - Delete/archive flow and downstream operational integrations are not fully complete.
 
 ## Execution Plan
 
@@ -152,8 +172,10 @@ Acceptance criteria:
 
 ### Phase 4 — Master Data Modules
 
-- [ ] Implement suppliers module (`SCR-SUP-*`).
-- [ ] Implement ingredients module (`SCR-ING-*`), including unit-related rules.
+- [x] Implement suppliers module (`SCR-SUP-*`).
+- [ ] Implement ingredients module (`SCR-ING-*`) remaining lifecycle items:
+  - delete/archive flow consistency with business rules
+  - integration with downstream stock and purchase operation behaviors
 
 Acceptance criteria:
 

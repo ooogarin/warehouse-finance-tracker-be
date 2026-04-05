@@ -83,11 +83,12 @@ Required onboarding APIs:
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/ingredients` | `GET /v1/ingredients` | PLANNED |
-| `/ingredients/new` | `POST /v1/ingredients` | PLANNED |
-| `/ingredients/[id]/edit` | `GET /v1/ingredients/:id`, `PATCH /v1/ingredients/:id` | PLANNED |
-| Unit management | `POST /v1/ingredients/:id/units`, `PATCH /v1/ingredients/:id/units/:unitId`, `DELETE /v1/ingredients/:id/units/:unitId` | PLANNED |
-| Status actions | `PATCH /v1/ingredients/:id/activate`, `PATCH /v1/ingredients/:id/deactivate` | PLANNED |
+| `/ingredients` | `GET /v1/ingredients` | IMPLEMENTED |
+| `/ingredients/new` | `POST /v1/ingredients` | IMPLEMENTED |
+| `/ingredients/[id]/edit` | `GET /v1/ingredients/:id`, `PATCH /v1/ingredients/:id` | IMPLEMENTED |
+| Delete action | `DELETE /v1/ingredients/:id` (hard delete when unused) | IMPLEMENTED |
+| Unit management | `POST /v1/ingredients/:id/units`, `PATCH /v1/ingredients/:id/units/:unitId`, `DELETE /v1/ingredients/:id/units/:unitId` | IMPLEMENTED |
+| Status actions | `PATCH /v1/ingredients/:id/activate`, `PATCH /v1/ingredients/:id/deactivate` | IMPLEMENTED |
 
 ### `SCREEN_LIST_05_PURCHASE_ORDERS.md`
 
@@ -177,6 +178,7 @@ Implemented route mount summary:
 - `app.route('/v1/onboarding', onboardingRoutesV1)`
 - `app.route('/v1/merchants', merchantRoutesV1)`
 - `app.route('/v1/suppliers', supplierRoutesV1)`
+- `app.route('/v1/ingredients', ingredientRoutesV1)`
 
 ## Update Rule
 

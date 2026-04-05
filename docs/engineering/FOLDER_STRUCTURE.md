@@ -161,7 +161,8 @@ modules/ingredients/
   ingredient.repository.ts
   ingredient.schema.ts
   ingredient.type.ts
-  units/
+  ingredient-unit/
+    ingredient-unit.controller.ts
     ingredient-unit.service.ts
     ingredient-unit.repository.ts
     ingredient-unit.schema.ts
