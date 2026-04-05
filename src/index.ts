@@ -11,6 +11,9 @@ import { requestLogger } from '@/core/middleware/logger.middleware';
 import { requestIdMiddleware } from '@/core/middleware/request-id.middleware';
 import { authRoutes } from '@/modules/auth/auth.route';
 import { authRoutesV1 } from '@/modules/auth/auth-v1.route';
+import { merchantRoutesV1 } from '@/modules/merchants/merchant-v1.route';
+import { onboardingRoutesV1 } from '@/modules/onboarding/onboarding-v1.route';
+import { supplierRoutesV1 } from '@/modules/suppliers/supplier-v1.route';
 import type { AppEnv } from '@/shared/types/context.types';
 
 const logger = createLogger({ module: 'server' });
@@ -81,6 +84,9 @@ const createApp = () => {
 
   // API v1 routes (auth required)
   app.route('/v1/auth', authRoutesV1);
+  app.route('/v1/onboarding', onboardingRoutesV1);
+  app.route('/v1/merchants', merchantRoutesV1);
+  app.route('/v1/suppliers', supplierRoutesV1);
 
   // Internal routes (health, metrics)
   // app.route('/internal', internalRoutes);

@@ -9,7 +9,7 @@ export interface PaginationMeta {
 }
 
 interface ApiResponseMeta {
-  requestId: string;
+  request_id: string;
   timestamp: string;
 }
 

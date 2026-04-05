@@ -31,7 +31,15 @@ export const successResponse = <T>({
     meta,
   };
 
-  logger.debug({ requestId: meta.requestId, statusCode, path: context.req.path, method: context.req.method }, 'Response sent');
+  logger.debug(
+    {
+      requestId: meta.request_id,
+      statusCode,
+      path: context.req.path,
+      method: context.req.method,
+    },
+    'Response sent',
+  );
 
   return context.json(response, statusCode);
 };
@@ -53,7 +61,7 @@ export const errorResponse = ({
   const meta = createResponseMeta(context);
 
   logger.warn(
-    { requestId: meta.requestId, statusCode, code, path: context.req.path, method: context.req.method, message },
+    { requestId: meta.request_id, statusCode, code, path: context.req.path, method: context.req.method, message },
     'Error response',
   );
 
@@ -77,9 +85,9 @@ export const generateRequestId = (): string => {
   return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 };
 
-const createResponseMeta = (context: AppContext): { requestId: string; timestamp: string } => {
+const createResponseMeta = (context: AppContext): { request_id: string; timestamp: string } => {
   return {
-    requestId: context.get('requestId') || generateRequestId(),
+    request_id: context.get('requestId') || generateRequestId(),
     timestamp: new Date().toISOString(),
   };
 };

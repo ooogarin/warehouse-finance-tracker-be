@@ -13,4 +13,5 @@ export const APP_ERROR_MESSAGES = {
   EMAIL_ALREADY_EXISTS: 'Email already exists',
   INVALID_CURRENT_PASSWORD: 'Current password is incorrect',
   USER_NOT_FOUND: 'User not found',
+  ONBOARDING_ALREADY_COMPLETED: 'Onboarding already completed',
 } as const;

@@ -120,6 +120,7 @@ Controllers must not:
 ### Response Contract
 
 Responses should use one consistent envelope.
+All response payload keys should use `snake_case`.
 
 Success shape:
 
@@ -129,7 +130,7 @@ Success shape:
   "data": {},
   "message": "Success",
   "meta": {
-    "requestId": "req_xxx",
+    "request_id": "req_xxx",
     "timestamp": "2026-04-05T00:00:00.000Z"
   }
 }
@@ -146,7 +147,7 @@ Error shape:
     "message": "Resource not found"
   },
   "meta": {
-    "requestId": "req_xxx",
+    "request_id": "req_xxx",
     "timestamp": "2026-04-05T00:00:00.000Z"
   }
 }

@@ -47,6 +47,7 @@ Recommended order for implementation work:
 ## Engineering References
 
 - `docs/engineering/ARCHITECTURE_OVERVIEW.md`
+- `docs/engineering/API_BY_SCREEN_LIST.md`
 - `docs/engineering/CODING_RULES.md`
 - `docs/engineering/FOLDER_STRUCTURE.md`
 - `docs/engineering/MODULE_BOUNDARIES.md`
