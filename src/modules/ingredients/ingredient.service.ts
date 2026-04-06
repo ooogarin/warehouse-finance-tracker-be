@@ -1,5 +1,6 @@
 import { commitTransaction, rollbackTransaction, startTransaction } from '@/core/db/client';
 import { conflictError, internalError, isAppError, notFoundError, validationError } from '@/core/errors/app-error';
+import { hasDatabaseErrorText, isUniqueViolation } from '@/core/errors/db-error.util';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
 import { generateUUID } from '@/shared/utils/crypto.util';
 import * as ingredientRepository from './ingredient.repository';
@@ -9,6 +10,7 @@ import type {
   CreateIngredientRequest,
   GetIngredientRequest,
   IngredientDetailMap,
+  IngredientDetailUnitMap,
   IngredientMap,
   IngredientRow,
   ListIngredientsRequest,
@@ -36,12 +38,16 @@ export const getDetail = async ({ merchantId, ingredientId }: GetIngredientReque
       throw notFoundError(APP_ERROR_MESSAGES.NOT_FOUND);
     }
 
-    const isUsed = await ingredientRepository.isUsedById(ingredientId);
+    const [isUsed, units] = await Promise.all([
+      ingredientRepository.isUsedById(ingredientId),
+      ingredientUnitRepository.getAllByIngredientId(ingredientId),
+    ]);
 
     return {
       ...toIngredientMap(ingredient),
       is_used: isUsed,
       is_base_unit_editable: !isUsed,
+      units: units.map(toIngredientDetailUnitMap),
     };
   } catch (error) {
     if (isAppError(error)) {
@@ -64,14 +70,14 @@ export const create = async (merchantId: string, data: CreateIngredientRequest):
       name: data.name,
       category: data.category,
       base_unit: data.base_unit,
-      min_stock: toDecimalString(data.min_stock ?? 0),
+      min_stock: data.min_stock ?? 0,
     });
 
     await ingredientUnitRepository.insert(connection, {
       id: generateUUID(),
       ingredient_id: created.id,
       unit_name: data.base_unit,
-      conversion_factor: '1.000',
+      conversion_factor: 1,
       is_default: true,
       description: 'Base unit',
       is_active: true,
@@ -119,7 +125,7 @@ export const update = async ({ merchantId, ingredientId }: GetIngredientRequest,
       name: data.name,
       category: data.category,
       base_unit: data.base_unit,
-      min_stock: data.min_stock !== undefined ? toDecimalString(data.min_stock) : undefined,
+      min_stock: data.min_stock !== undefined ? data.min_stock : undefined,
     });
 
     if (!updated) {
@@ -240,7 +246,6 @@ export const remove = async ({ merchantId, ingredientId }: GetIngredientRequest)
   }
 };
 
-
 const toIngredientMap = (ingredient: IngredientRow): IngredientMap => {
   return {
     id: ingredient.id,
@@ -253,27 +258,31 @@ const toIngredientMap = (ingredient: IngredientRow): IngredientMap => {
   };
 };
 
-const toDecimalString = (value: number): string => {
-  return value.toFixed(3);
+const toIngredientDetailUnitMap = (unit: {
+  id: string;
+  unit_name: string;
+  conversion_factor: number;
+  is_default: boolean;
+  description: string | null;
+  is_active: boolean;
+}): IngredientDetailUnitMap => {
+  return {
+    id: unit.id,
+    unit_name: unit.unit_name,
+    conversion_factor: unit.conversion_factor,
+    is_default: unit.is_default,
+    description: unit.description,
+    is_active: unit.is_active,
+  };
 };
 
 const isDuplicateIngredientName = (error: unknown): boolean => {
-  if (!error || typeof error !== 'object') {
+  if (!isUniqueViolation(error)) {
     return false;
   }
 
-  const dbError = error as {
-    code?: string;
-    constraint?: string;
-    detail?: string;
-    message?: string;
-  };
-
-  const text = [dbError.constraint, dbError.detail, dbError.message].filter(Boolean).join(' ').toLowerCase();
-
-  if (dbError.code !== '23505') {
-    return false;
-  }
-
-  return text.includes('idx_ingredients_merchant_name_unique') || (text.includes('unique') && text.includes('ingredient'));
+  return (
+    hasDatabaseErrorText(error, ['idx_ingredients_merchant_name_unique']) ||
+    (hasDatabaseErrorText(error, ['unique']) && hasDatabaseErrorText(error, ['ingredient']))
+  );
 };

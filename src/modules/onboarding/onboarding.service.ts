@@ -5,6 +5,7 @@ import * as merchantRepository from '@/modules/merchants/merchant.repository';
 import * as supplierRepository from '@/modules/suppliers/supplier.repository';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
 import { generateUUID } from '@/shared/utils/crypto.util';
+import { toDecimalString } from '@/shared/utils/number.util';
 import type { ReservedSQL } from '@/core/db/client';
 import type { SupplierInsertPayload } from '@/modules/suppliers/supplier.type';
 import type { CompleteOnboardingRequest, GetOnboardingStatusRequest, OnboardingCompleteMap, OnboardingStatusMap } from './onboarding.type';
@@ -105,8 +106,4 @@ export const complete = async ({ userId }: GetOnboardingStatusRequest, data: Com
     }
     throw internalError('Failed to complete onboarding');
   }
-};
-
-const toDecimalString = (value: number): string => {
-  return value.toFixed(3);
 };

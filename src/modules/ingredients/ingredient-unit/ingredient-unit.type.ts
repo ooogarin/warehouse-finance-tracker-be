@@ -8,7 +8,7 @@ export type IngredientUnitInsertPayload = {
   id: string;
   ingredient_id: string;
   unit_name: string;
-  conversion_factor: string;
+  conversion_factor: number;
   is_default?: boolean;
   description?: string | null;
   is_active?: boolean;
@@ -16,7 +16,7 @@ export type IngredientUnitInsertPayload = {
 
 export type IngredientUnitUpdatePayload = {
   unit_name?: string;
-  conversion_factor?: string;
+  conversion_factor?: number;
   is_default?: boolean;
   description?: string | null;
   is_active?: boolean;
@@ -30,7 +30,7 @@ export interface IngredientUnitRow {
   id: string;
   ingredient_id: string;
   unit_name: string;
-  conversion_factor: string;
+  conversion_factor: number;
   is_default: boolean;
   description: string | null;
   is_active: boolean;
@@ -68,7 +68,7 @@ export type UpdateIngredientUnitRequest = {
 export type IngredientUnitMap = {
   id: string;
   unit_name: string;
-  conversion_factor: string;
+  conversion_factor: number;
   is_default: boolean;
   description: string | null;
   is_active: boolean;

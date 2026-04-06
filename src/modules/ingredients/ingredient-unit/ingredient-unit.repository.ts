@@ -20,7 +20,7 @@ export const getOneByIdAndIngredientId = async (unitId: string, ingredientId: st
       id,
       ingredient_id,
       unit_name,
-      conversion_factor::text AS conversion_factor,
+      conversion_factor::double precision AS conversion_factor,
       is_default,
       description,
       is_active,
@@ -35,6 +35,27 @@ export const getOneByIdAndIngredientId = async (unitId: string, ingredientId: st
   return result ?? null;
 };
 
+// Get all units by ingredient
+export const getAllByIngredientId = async (ingredientId: string): Promise<IngredientUnitRow[]> => {
+  return await sql<IngredientUnitRow[]>`
+    SELECT
+      id,
+      ingredient_id,
+      unit_name,
+      conversion_factor::double precision AS conversion_factor,
+      is_default,
+      description,
+      is_active,
+      created_at,
+      updated_at
+    FROM ingredient_units
+    WHERE ingredient_id = ${ingredientId}
+    ORDER BY
+      conversion_factor ASC,
+      unit_name ASC
+  `;
+};
+
 // Insert one ingredient unit
 export const insert = async (db: ReservedSQL, payload: IngredientUnitInsertPayload): Promise<IngredientUnitRow> => {
   const allowedColumns = ['id', 'ingredient_id', 'unit_name', 'conversion_factor', 'is_default', 'description', 'is_active'] as const;
@@ -45,7 +66,7 @@ export const insert = async (db: ReservedSQL, payload: IngredientUnitInsertPaylo
       id,
       ingredient_id,
       unit_name,
-      conversion_factor::text AS conversion_factor,
+      conversion_factor::double precision AS conversion_factor,
       is_default,
       description,
       is_active,
@@ -80,7 +101,7 @@ export const updateByIdAndIngredientId = async (
       id,
       ingredient_id,
       unit_name,
-      conversion_factor::text AS conversion_factor,
+      conversion_factor::double precision AS conversion_factor,
       is_default,
       description,
       is_active,
@@ -101,6 +122,18 @@ export const deleteByIdAndIngredientId = async (db: ReservedSQL, unitId: string,
   `;
 
   return Boolean(result);
+};
+
+// Set base unit as default after default unit deletion
+export const setBaseUnitAsDefaultByIngredientId = async (db: ReservedSQL, ingredientId: string): Promise<void> => {
+  await db`
+    UPDATE ingredient_units
+    SET
+      is_default = true,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE ingredient_id = ${ingredientId}
+      AND conversion_factor = 1
+  `;
 };
 
 // Keep ingredient unit records consistent after base unit changes

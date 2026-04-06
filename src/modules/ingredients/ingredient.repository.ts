@@ -3,7 +3,11 @@ import type { ReservedSQL } from '@/core/db/client';
 import type { IngredientInsertPayload, IngredientRow, IngredientUpdatePayload } from './ingredient.type';
 
 // Get ingredient list by merchant
-export const getAllByMerchantId = async (merchantId: string, search?: string, category?: IngredientRow['category']): Promise<IngredientRow[]> => {
+export const getAllByMerchantId = async (
+  merchantId: string,
+  search?: string,
+  category?: IngredientRow['category'],
+): Promise<IngredientRow[]> => {
   const searchPattern = search?.trim() ? `%${search.trim()}%` : null;
 
   return await sql<IngredientRow[]>`
@@ -13,8 +17,8 @@ export const getAllByMerchantId = async (merchantId: string, search?: string, ca
       name,
       category,
       base_unit,
-      stock_quantity::text AS stock_quantity,
-      min_stock::text AS min_stock,
+      stock_quantity::double precision AS stock_quantity,
+      min_stock::double precision AS min_stock,
       is_active,
       created_at,
       updated_at
@@ -41,8 +45,8 @@ export const getOneByIdAndMerchantId = async (ingredientId: string, merchantId: 
       name,
       category,
       base_unit,
-      stock_quantity::text AS stock_quantity,
-      min_stock::text AS min_stock,
+      stock_quantity::double precision AS stock_quantity,
+      min_stock::double precision AS min_stock,
       is_active,
       created_at,
       updated_at
@@ -67,8 +71,8 @@ export const insert = async (db: ReservedSQL, payload: IngredientInsertPayload):
       name,
       category,
       base_unit,
-      stock_quantity::text AS stock_quantity,
-      min_stock::text AS min_stock,
+      stock_quantity::double precision AS stock_quantity,
+      min_stock::double precision AS min_stock,
       is_active,
       created_at,
       updated_at
@@ -103,8 +107,8 @@ export const updateByIdAndMerchantId = async (
       name,
       category,
       base_unit,
-      stock_quantity::text AS stock_quantity,
-      min_stock::text AS min_stock,
+      stock_quantity::double precision AS stock_quantity,
+      min_stock::double precision AS min_stock,
       is_active,
       created_at,
       updated_at
@@ -133,8 +137,8 @@ export const updateStatusByIdAndMerchantId = async (
       name,
       category,
       base_unit,
-      stock_quantity::text AS stock_quantity,
-      min_stock::text AS min_stock,
+      stock_quantity::double precision AS stock_quantity,
+      min_stock::double precision AS min_stock,
       is_active,
       created_at,
       updated_at

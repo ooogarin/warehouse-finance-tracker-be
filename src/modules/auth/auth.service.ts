@@ -1,6 +1,7 @@
 import { logger } from '@/core/config/logger.config';
 import { commitTransaction, rollbackTransaction, startTransaction } from '@/core/db/client';
 import { conflictError, internalError, isAppError, notFoundError, unauthorizedError } from '@/core/errors/app-error';
+import { hasDatabaseErrorText, isUniqueViolation } from '@/core/errors/db-error.util';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
 import { USER_ROLES } from '@/shared/constants/roles.constant';
 import { generateUUID, hashPassword, verifyPassword } from '@/shared/utils/crypto.util';
@@ -219,24 +220,14 @@ export const changePassword = async (userId: string, data: ChangePasswordRequest
 
 // Helper function to check if error is a unique constraint violation for email
 const isEmailUniqueViolation = (error: unknown): boolean => {
-  if (!error || typeof error !== 'object') {
+  if (!isUniqueViolation(error)) {
     return false;
   }
 
-  const dbError = error as {
-    code?: string;
-    constraint?: string;
-    detail?: string;
-    message?: string;
-  };
-
-  const text = [dbError.constraint, dbError.detail, dbError.message].filter(Boolean).join(' ').toLowerCase();
-
-  if (dbError.code !== '23505') {
-    return false;
-  }
-
-  return text.includes('idx_users_email_unique') || text.includes('users_email_key') || (text.includes('unique') && text.includes('email'));
+  return (
+    hasDatabaseErrorText(error, ['idx_users_email_unique', 'users_email_key']) ||
+    (hasDatabaseErrorText(error, ['unique']) && hasDatabaseErrorText(error, ['email']))
+  );
 };
 
 // Helper function to map UserRow to UserMap

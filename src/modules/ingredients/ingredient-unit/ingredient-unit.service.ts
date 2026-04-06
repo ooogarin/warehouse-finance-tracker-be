@@ -1,5 +1,6 @@
 import { commitTransaction, rollbackTransaction, startTransaction } from '@/core/db/client';
 import { conflictError, internalError, isAppError, notFoundError, validationError } from '@/core/errors/app-error';
+import { hasDatabaseErrorText, isForeignKeyViolation, isUniqueViolation } from '@/core/errors/db-error.util';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
 import { generateUUID } from '@/shared/utils/crypto.util';
 import * as ingredientRepository from '../ingredient.repository';
@@ -36,7 +37,7 @@ export const create = async (
       id: generateUUID(),
       ingredient_id: ingredientId,
       unit_name: data.unit_name,
-      conversion_factor: toDecimalString(data.conversion_factor),
+      conversion_factor: data.conversion_factor,
       is_default: data.is_default ?? false,
       description: data.description ?? null,
       is_active: true,
@@ -62,7 +63,10 @@ export const create = async (
 };
 
 // Update ingredient unit
-export const update = async ({ merchantId, ingredientId, unitId }: ManageIngredientUnitRequest, data: UpdateIngredientUnitRequest): Promise<IngredientUnitMap> => {
+export const update = async (
+  { merchantId, ingredientId, unitId }: ManageIngredientUnitRequest,
+  data: UpdateIngredientUnitRequest,
+): Promise<IngredientUnitMap> => {
   let connection: ReservedSQL | null = null;
 
   try {
@@ -76,6 +80,10 @@ export const update = async ({ merchantId, ingredientId, unitId }: ManageIngredi
       throw notFoundError(APP_ERROR_MESSAGES.NOT_FOUND);
     }
 
+    if (existingUnit.conversion_factor === 1) {
+      throw validationError('Base unit cannot be updated from unit endpoint');
+    }
+
     connection = await startTransaction();
 
     if (data.is_default) {
@@ -83,11 +91,11 @@ export const update = async ({ merchantId, ingredientId, unitId }: ManageIngredi
     }
 
     const updated = await ingredientUnitRepository.updateByIdAndIngredientId(connection, unitId, ingredientId, {
-      unit_name: data.unit_name,
-      conversion_factor: data.conversion_factor !== undefined ? toDecimalString(data.conversion_factor) : undefined,
-      is_default: data.is_default,
-      description: data.description ?? null,
-      is_active: data.is_active,
+      unit_name: data.unit_name !== undefined ? data.unit_name : undefined,
+      conversion_factor: data.conversion_factor !== undefined ? data.conversion_factor : undefined,
+      is_default: data.is_default !== undefined ? data.is_default : undefined,
+      description: data.description !== undefined ? data.description : undefined,
+      is_active: data.is_active !== undefined ? data.is_active : undefined,
     });
 
     if (!updated) {
@@ -128,7 +136,7 @@ export const remove = async ({ merchantId, ingredientId, unitId }: ManageIngredi
       throw notFoundError(APP_ERROR_MESSAGES.NOT_FOUND);
     }
 
-    if (Number(unit.conversion_factor) === 1) {
+    if (unit.conversion_factor === 1) {
       throw validationError('Base unit cannot be deleted');
     }
 
@@ -137,6 +145,10 @@ export const remove = async ({ merchantId, ingredientId, unitId }: ManageIngredi
     const deleted = await ingredientUnitRepository.deleteByIdAndIngredientId(connection, unitId, ingredientId);
     if (!deleted) {
       throw notFoundError(APP_ERROR_MESSAGES.NOT_FOUND);
+    }
+
+    if (unit.is_default) {
+      await ingredientUnitRepository.setBaseUnitAsDefaultByIngredientId(connection, ingredientId);
     }
 
     await commitTransaction(connection);
@@ -167,36 +179,14 @@ const toIngredientUnitMap = (unit: IngredientUnitRow): IngredientUnitMap => {
   };
 };
 
-const toDecimalString = (value: number): string => {
-  return value.toFixed(3);
-};
-
 const isDuplicateIngredientUnitName = (error: unknown): boolean => {
-  if (!error || typeof error !== 'object') {
+  if (!isUniqueViolation(error)) {
     return false;
   }
 
-  const dbError = error as {
-    code?: string;
-    constraint?: string;
-    detail?: string;
-    message?: string;
-  };
-
-  const text = [dbError.constraint, dbError.detail, dbError.message].filter(Boolean).join(' ').toLowerCase();
-
-  if (dbError.code !== '23505') {
-    return false;
-  }
-
-  return text.includes('unique_ingredient_unit') || text.includes('idx_ingredient_units_merchant_name_unique');
+  return hasDatabaseErrorText(error, ['unique_ingredient_unit', 'idx_ingredient_units_merchant_name_unique']);
 };
 
 const isForeignKeyReferenceViolation = (error: unknown): boolean => {
-  if (!error || typeof error !== 'object') {
-    return false;
-  }
-
-  const dbError = error as { code?: string };
-  return dbError.code === '23503';
+  return isForeignKeyViolation(error);
 };

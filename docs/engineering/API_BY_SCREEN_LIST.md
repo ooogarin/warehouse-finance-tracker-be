@@ -90,6 +90,9 @@ Required onboarding APIs:
 | Unit management | `POST /v1/ingredients/:id/units`, `PATCH /v1/ingredients/:id/units/:unitId`, `DELETE /v1/ingredients/:id/units/:unitId` | IMPLEMENTED |
 | Status actions | `PATCH /v1/ingredients/:id/activate`, `PATCH /v1/ingredients/:id/deactivate` | IMPLEMENTED |
 
+Notes:
+`GET /v1/ingredients/:id` returns `is_used`, `is_base_unit_editable`, and `units` for edit screen rendering.
+
 ### `SCREEN_LIST_05_PURCHASE_ORDERS.md`
 
 | Frontend Route | Backend API | Status |

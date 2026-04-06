@@ -1,7 +1,7 @@
 import { isDevelopment } from '@/core/config/env.config';
-import { createLogger } from '@/core/config/logger.config';
+import { createLogger, generateRequestId } from '@/core/config/logger.config';
 import { isAppError } from '@/core/errors/app-error';
-import { errorResponse, generateRequestId } from '@/core/http/response';
+import { errorResponse } from '@/core/http/response';
 import { APP_ERROR_CODES } from '@/shared/constants/error-codes.constant';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
 import type { Context } from 'hono';

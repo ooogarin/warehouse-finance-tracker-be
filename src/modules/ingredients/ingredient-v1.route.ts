@@ -2,19 +2,14 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { authenticate } from '@/core/middleware/auth.middleware';
 import { resolveMerchantContext } from '@/modules/merchants/merchant.middleware';
-import * as ingredientUnitController from './ingredient-unit/ingredient-unit.controller';
 import * as ingredientController from './ingredient.controller';
+import { createIngredientSchema, ingredientListQuerySchema, ingredientParamsSchema, updateIngredientSchema } from './ingredient.schema';
+import * as ingredientUnitController from './ingredient-unit/ingredient-unit.controller';
 import {
   createIngredientUnitSchema,
   ingredientUnitParamsSchema,
   updateIngredientUnitSchema,
 } from './ingredient-unit/ingredient-unit.schema';
-import {
-  createIngredientSchema,
-  ingredientListQuerySchema,
-  ingredientParamsSchema,
-  updateIngredientSchema,
-} from './ingredient.schema';
 import type { AppEnv } from '@/shared/types/context.types';
 
 const ingredientRoutesV1 = new Hono<AppEnv>();
@@ -52,7 +47,12 @@ ingredientRoutesV1.patch('/:id/deactivate', zValidator('param', ingredientParams
 ingredientRoutesV1.delete('/:id', zValidator('param', ingredientParamsSchema), ingredientController.remove);
 
 // POST /v1/ingredients/:id/units - Create ingredient unit
-ingredientRoutesV1.post('/:id/units', zValidator('param', ingredientParamsSchema), zValidator('json', createIngredientUnitSchema), ingredientUnitController.create);
+ingredientRoutesV1.post(
+  '/:id/units',
+  zValidator('param', ingredientParamsSchema),
+  zValidator('json', createIngredientUnitSchema),
+  ingredientUnitController.create,
+);
 
 // PATCH /v1/ingredients/:id/units/:unitId - Update ingredient unit
 ingredientRoutesV1.patch(

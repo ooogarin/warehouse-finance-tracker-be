@@ -1,4 +1,4 @@
-import { createLogger } from '@/core/config/logger.config';
+import { createLogger, generateRequestId } from '@/core/config/logger.config';
 import { APP_ERROR_CODES } from '@/shared/constants/error-codes.constant';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { AppErrorCode } from '@/shared/constants/error-codes.constant';
@@ -78,11 +78,6 @@ export const errorResponse = ({
   };
 
   return context.json(response, statusCode);
-};
-
-// Generate unique request ID
-export const generateRequestId = (): string => {
-  return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 };
 
 const createResponseMeta = (context: AppContext): { request_id: string; timestamp: string } => {

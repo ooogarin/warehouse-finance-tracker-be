@@ -2,7 +2,13 @@ import { successResponse } from '@/core/http/response';
 import { getBody, getParam, getQuery } from '@/shared/utils/hono.util';
 import * as ingredientService from './ingredient.service';
 import type { AppContext } from '@/shared/types/context.types';
-import type { CreateIngredientRequest, GetIngredientRequest, IngredientCategory, ListIngredientsRequest, UpdateIngredientRequest } from './ingredient.type';
+import type {
+  CreateIngredientRequest,
+  GetIngredientRequest,
+  IngredientCategory,
+  ListIngredientsRequest,
+  UpdateIngredientRequest,
+} from './ingredient.type';
 
 // List ingredients
 // GET /v1/ingredients
