@@ -11,7 +11,7 @@ export const up = async (transaction: SQL): Promise<void> => {
       merchant_id UUID NOT NULL,
       supplier_id UUID,
       purchase_date TIMESTAMPTZ NOT NULL,
-      invoice_number VARCHAR(50),
+      invoice_number VARCHAR(50) NOT NULL,
       total_amount DECIMAL(15,3) NOT NULL,
       paid_cash DECIMAL(15,3) NOT NULL DEFAULT 0,
       paid_owner DECIMAL(15,3) NOT NULL DEFAULT 0,
@@ -34,6 +34,12 @@ export const up = async (transaction: SQL): Promise<void> => {
   `;
 
   await transaction`
+    CREATE INDEX idx_purchase_orders_merchant_invoice 
+      ON purchase_orders(merchant_id, invoice_number) 
+      WHERE deleted_at IS NULL
+  `;
+
+  await transaction`
     CREATE INDEX idx_purchase_orders_merchant_supplier_date 
       ON purchase_orders(merchant_id, supplier_id, purchase_date DESC) 
       WHERE deleted_at IS NULL
@@ -42,6 +48,7 @@ export const up = async (transaction: SQL): Promise<void> => {
 
 export const down = async (transaction: SQL): Promise<void> => {
   await transaction`DROP INDEX IF EXISTS idx_purchase_orders_merchant_supplier_date`;
+  await transaction`DROP INDEX IF EXISTS idx_purchase_orders_merchant_invoice`;
   await transaction`DROP INDEX IF EXISTS idx_purchase_orders_merchant_date`;
   await transaction`DROP TABLE IF EXISTS purchase_orders`;
 };

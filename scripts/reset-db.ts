@@ -49,7 +49,11 @@ const resetDatabase = async (): Promise<void> => {
       'debts',
       'cash_logs',
       'stock_logs',
-      'purchase_items',
+      'stock_adjustment_items',
+      'stock_adjustments',
+      'stock_usage_items',
+      'stock_usages',
+      'purchase_order_items',
       'purchase_orders',
       'ingredient_batches',
       'ingredient_units',
@@ -71,10 +75,13 @@ const resetDatabase = async (): Promise<void> => {
       'debt_payment_method',
       'debt_status',
       'debt_creditor_type',
+      'cash_log_reference_type',
       'cash_log_category',
       'cash_log_flow_type',
       'stock_log_reference_type',
-      'stock_log_movement_type',
+      'stock_log_flow_type',
+      'stock_adjustment_flow_type',
+      'stock_usage_type',
       'ingredient_category',
       'merchant_type',
       'user_role',
@@ -86,7 +93,7 @@ const resetDatabase = async (): Promise<void> => {
     }
 
     logger.info('✅ Database reset complete');
-    logger.info("Run 'bun run migrate' to recreate tables");
+    logger.info("Run 'bun run db:migrate' to recreate tables");
   } catch (error) {
     logger.error(`Reset failed: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);

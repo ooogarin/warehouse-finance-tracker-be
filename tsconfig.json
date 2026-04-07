@@ -14,19 +14,11 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@/config/*": ["./src/config/*"],
-      "@/constants/*": ["./src/constants/*"],
-      "@/controllers/*": ["./src/controllers/*"],
-      "@/middleware/*": ["./src/middleware/*"],
-      "@/repositories/*": ["./src/repositories/*"],
-      "@/routes/*": ["./src/routes/*"],
-      "@/services/*": ["./src/services/*"],
-      "@/types/*": ["./src/types/*"],
-      "@/utils/*": ["./src/utils/*"],
-      "@/validators/*": ["./src/validators/*"]
+      "@/core/*": ["./src/core/*"],
+      "@/modules/*": ["./src/modules/*"],
+      "@/shared/*": ["./src/shared/*"]
     },
     "types": ["@types/bun"]
   },

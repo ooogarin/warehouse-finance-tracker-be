@@ -3,7 +3,21 @@
   "assist": {
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "identifierOrder": "lexicographic",
+            "groups": [
+              [{ "source": [":BUN:", ":NODE:"], "type": false }],
+              [{ "source": [":PACKAGE:", ":PACKAGE_WITH_PROTOCOL:"], "type": false }],
+              [{ "source": "@/**", "type": false }],
+              [{ "source": "../**", "type": false }],
+              [{ "source": "./**", "type": false }],
+              [{ "source": "./", "type": false }],
+              [{ "type": true }]
+            ]
+          }
+        }
       }
     }
   },
@@ -12,8 +26,8 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "noUnusedImports": "error",
-        "noUnusedVariables": "error"
+        "noUnusedImports": "warn",
+        "noUnusedVariables": "warn"
       },
       "suspicious": {
         "noExplicitAny": "warn",
@@ -21,7 +35,8 @@
       },
       "style": {
         "useTemplate": "error",
-        "noNonNullAssertion": "error"
+        "noNonNullAssertion": "error",
+        "useBlockStatements": "warn"
       }
     }
   },

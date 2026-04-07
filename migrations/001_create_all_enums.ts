@@ -25,13 +25,27 @@ export const up = async (transaction: SQL): Promise<void> => {
     )
   `;
 
-  // Stock log movement types
+  // Stock usage types
   await transaction`
-    CREATE TYPE stock_log_movement_type AS ENUM (
+    CREATE TYPE stock_usage_type AS ENUM (
+      'usage',
+      'waste'
+    )
+  `;
+
+  // Stock adjustment flow types
+  await transaction`
+    CREATE TYPE stock_adjustment_flow_type AS ENUM (
       'in',
-      'use',
-      'waste',
-      'adjustment'
+      'out'
+    )
+  `;
+
+  // Stock log flow types
+  await transaction`
+    CREATE TYPE stock_log_flow_type AS ENUM (
+      'in',
+      'out'
     )
   `;
 
@@ -66,11 +80,14 @@ export const up = async (transaction: SQL): Promise<void> => {
     )
   `;
 
+  // Cash log reference types
+  await transaction`CREATE TYPE cash_log_reference_type AS ENUM ('purchase_order', 'debt_payment')`;
+
   // Debt creditor types
   await transaction`CREATE TYPE debt_creditor_type AS ENUM ('owner', 'supplier', 'other')`;
 
   // Debt statuses
-  await transaction`CREATE TYPE debt_status AS ENUM ('unpaid', 'partial', 'paid', 'overdue')`;
+  await transaction`CREATE TYPE debt_status AS ENUM ('unpaid', 'partial', 'paid')`;
 
   // Debt payment methods
   await transaction`CREATE TYPE debt_payment_method AS ENUM ('cash', 'transfer', 'other')`;
@@ -81,10 +98,13 @@ export const down = async (transaction: SQL): Promise<void> => {
   await transaction`DROP TYPE IF EXISTS debt_payment_method CASCADE`;
   await transaction`DROP TYPE IF EXISTS debt_status CASCADE`;
   await transaction`DROP TYPE IF EXISTS debt_creditor_type CASCADE`;
+  await transaction`DROP TYPE IF EXISTS cash_log_reference_type CASCADE`;
   await transaction`DROP TYPE IF EXISTS cash_log_category CASCADE`;
   await transaction`DROP TYPE IF EXISTS cash_log_flow_type CASCADE`;
   await transaction`DROP TYPE IF EXISTS stock_log_reference_type CASCADE`;
-  await transaction`DROP TYPE IF EXISTS stock_log_movement_type CASCADE`;
+  await transaction`DROP TYPE IF EXISTS stock_log_flow_type CASCADE`;
+  await transaction`DROP TYPE IF EXISTS stock_adjustment_flow_type CASCADE`;
+  await transaction`DROP TYPE IF EXISTS stock_usage_type CASCADE`;
   await transaction`DROP TYPE IF EXISTS ingredient_category CASCADE`;
   await transaction`DROP TYPE IF EXISTS merchant_type CASCADE`;
   await transaction`DROP TYPE IF EXISTS user_role CASCADE`;

@@ -3,20 +3,26 @@ import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
-import { sql, testConnection } from './config/database.config';
-import { env, isDevelopment } from './config/env.config';
-import { createLogger } from './config/logger.config';
-import { errorHandler, notFoundHandler } from './middleware/error-handler.middleware';
-import { requestLogger } from './middleware/logger.middleware';
-import { requestIdMiddleware } from './middleware/request-id.middleware';
-import type { AppEnv } from './types/context.types';
-
-// Import routes (will be implemented in later phases)
-// import { publicRoutes } from "./routes/public";
-// import { v1Routes } from "./routes/v1";
-// import { internalRoutes } from "./routes/internal";
+import { env, isDevelopment } from '@/core/config/env.config';
+import { createLogger } from '@/core/config/logger.config';
+import { closeConnection, testConnection } from '@/core/db/client';
+import { errorHandler, notFoundHandler } from '@/core/middleware/error-handler.middleware';
+import { requestLogger } from '@/core/middleware/logger.middleware';
+import { requestIdMiddleware } from '@/core/middleware/request-id.middleware';
+import { authRoutes } from '@/modules/auth/auth.route';
+import { authRoutesV1 } from '@/modules/auth/auth-v1.route';
+import { ingredientRoutesV1 } from '@/modules/ingredients/ingredient-v1.route';
+import { merchantRoutesV1 } from '@/modules/merchants/merchant-v1.route';
+import { onboardingRoutesV1 } from '@/modules/onboarding/onboarding-v1.route';
+import { supplierRoutesV1 } from '@/modules/suppliers/supplier-v1.route';
+import type { AppEnv } from '@/shared/types/context.types';
 
 const logger = createLogger({ module: 'server' });
+const APP_INFO = {
+  name: 'Warehouse & Finance Tracker API',
+  version: '1.0.0',
+  description: 'Warehouse & Finance Management API',
+};
 
 // Create and configure Hono application
 const createApp = () => {
@@ -61,7 +67,7 @@ const createApp = () => {
       {
         status: dbConnected ? 'healthy' : 'unhealthy',
         timestamp: new Date().toISOString(),
-        version: '1.0.0',
+        version: APP_INFO.version,
         services: {
           database: dbConnected ? 'connected' : 'disconnected',
         },
@@ -75,22 +81,26 @@ const createApp = () => {
   // ==========================================
 
   // Public routes (no auth required)
-  // app.route("/auth", publicRoutes);
+  app.route('/auth', authRoutes);
 
   // API v1 routes (auth required)
-  // app.route("/v1", v1Routes);
+  app.route('/v1/auth', authRoutesV1);
+  app.route('/v1/onboarding', onboardingRoutesV1);
+  app.route('/v1/merchants', merchantRoutesV1);
+  app.route('/v1/suppliers', supplierRoutesV1);
+  app.route('/v1/ingredients', ingredientRoutesV1);
 
   // Internal routes (health, metrics)
-  // app.route("/internal", internalRoutes);
+  // app.route('/internal', internalRoutes);
 
   // ==========================================
   // Root endpoint
   // ==========================================
   app.get('/', (c) => {
     return c.json({
-      name: 'Warehouse & Finance Tracker API',
-      version: '1.0.0',
-      description: 'Warehouse & Finance Management API',
+      name: APP_INFO.name,
+      version: APP_INFO.version,
+      description: APP_INFO.description,
       documentation: '/docs',
       health: '/health',
     });
@@ -99,7 +109,10 @@ const createApp = () => {
   // ==========================================
   // Error Handling
   // ==========================================
+  // Endpoint not found
   app.notFound(notFoundHandler);
+
+  // Error handler
   app.onError(errorHandler);
 
   return app;
@@ -142,7 +155,7 @@ const startServer = async (): Promise<void> => {
       server.stop();
 
       // Close database connections
-      await sql.end();
+      await closeConnection();
 
       logger.info('Server shutdown complete');
       process.exit(0);
@@ -151,7 +164,7 @@ const startServer = async (): Promise<void> => {
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
   } catch (error) {
-    logger.fatal({ error }, 'Failed to start server');
+    logger.fatal({ error: error instanceof Error ? error.message : error }, 'Failed to start server');
     process.exit(1);
   }
 };

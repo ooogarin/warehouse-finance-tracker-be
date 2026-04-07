@@ -3,11 +3,12 @@
  * Database Seeder
  *
  * Usage:
- *   bun run seed              # Seed database with sample data
- *   bun run seed --reset      # Reset and reseed
+ *   bun run db:seed                 # Seed database with sample data
+ *   bun run db:seed --reset         # Reset and reseed
+ *   bun run db:seed --reset-only    # Reset data only
  */
 
-import { password, SQL } from 'bun';
+import { SQL, password } from 'bun';
 
 // Database URL from environment
 const DATABASE_URL = `postgres://${process.env.DATABASE_USER || 'postgres'}:${process.env.DATABASE_PASSWORD || 'postgres'}@${process.env.DATABASE_HOST || 'localhost'}:${process.env.DATABASE_PORT || '5432'}/${process.env.DATABASE_NAME || 'warehouse'}`;
@@ -39,7 +40,7 @@ const seed = async (sql: SQL): Promise<void> => {
 
     if (existingUser.length > 0) {
       userId = existingUser[0].id;
-      logger.info(`✅ User already exists: ${userEmail}`);
+      logger.info(`User already exists: ${userEmail}`);
     } else {
       const inserted = await sql`
         INSERT INTO users (id, name, email, password, role, phone)
@@ -54,28 +55,43 @@ const seed = async (sql: SQL): Promise<void> => {
         RETURNING id
       `;
       userId = inserted[0].id;
-      logger.info(`✅ User created: ${userEmail} / password123`);
+      logger.info(`User created: ${userEmail} / password123`);
     }
 
-    // Merchant
-    const merchantId = crypto.randomUUID();
-
-    const merchantResult = await sql`
-      INSERT INTO merchants (id, name, type, address, phone, cash_balance)
-      VALUES (
-        ${merchantId},
-        'Warung Sederhana',
-        'restaurant',
-        'Jl. Makan No. 123, Jakarta',
-        '+6281234567891',
-        1000000
-      )
-      ON CONFLICT (id) DO NOTHING
-      RETURNING id, name
+    // Merchant (idempotent by name)
+    const merchantName = 'Warung Sederhana';
+    const existingMerchant = await sql<{ id: string }[]>`
+      SELECT id
+      FROM merchants
+      WHERE name = ${merchantName}
+        AND deleted_at IS NULL
+      LIMIT 1
     `;
 
-    const resolvedMerchantId = merchantResult[0]?.id ?? merchantId;
-    logger.info(`✅ Merchant ready: Warung Sederhana`);
+    let resolvedMerchantId: string;
+
+    if (existingMerchant.length > 0) {
+      resolvedMerchantId = existingMerchant[0].id;
+      logger.info(`Merchant already exists: ${merchantName}`);
+    } else {
+      const insertedMerchant = await sql<{ id: string }[]>`
+        INSERT INTO merchants (id, name, type, address, phone, cash_balance)
+        VALUES (
+          ${crypto.randomUUID()},
+          ${merchantName},
+          'restaurant',
+          'Jl. Makan No. 123, Jakarta',
+          '+6281234567891',
+          1000000
+        )
+        RETURNING id
+      `;
+
+      resolvedMerchantId = insertedMerchant[0].id;
+      logger.info(`Merchant created: ${merchantName}`);
+    }
+
+    logger.info(`Merchant ready: Warung Sederhana`);
 
     // User - Merchant Junction
     if (userId && resolvedMerchantId) {
@@ -88,7 +104,7 @@ const seed = async (sql: SQL): Promise<void> => {
         )
         ON CONFLICT (user_id, merchant_id) DO NOTHING
       `;
-      logger.info('✅ User linked to merchant');
+      logger.info('User linked to merchant');
     }
 
     // Suppliers
@@ -99,6 +115,26 @@ const seed = async (sql: SQL): Promise<void> => {
     ];
 
     for (const sup of suppliers) {
+      const existingSupplier = await sql<{ id: string }[]>`
+        SELECT id
+        FROM suppliers
+        WHERE merchant_id = ${resolvedMerchantId}
+          AND name = ${sup.name}
+          AND deleted_at IS NULL
+        LIMIT 1
+      `;
+
+      if (existingSupplier.length > 0) {
+        await sql`
+          UPDATE suppliers
+          SET
+            phone = ${sup.phone},
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${existingSupplier[0].id}
+        `;
+        continue;
+      }
+
       await sql`
         INSERT INTO suppliers (id, merchant_id, name, phone)
         VALUES (
@@ -107,10 +143,9 @@ const seed = async (sql: SQL): Promise<void> => {
           ${sup.name},
           ${sup.phone}
         )
-        ON CONFLICT (id) DO NOTHING
       `;
     }
-    logger.info(`✅ ${suppliers.length} suppliers ready`);
+    logger.info(`${suppliers.length} suppliers ready`);
 
     logger.info('✨ Database seeding completed successfully!');
   } catch (error) {
@@ -127,7 +162,11 @@ const reset = async (sql: SQL): Promise<void> => {
     'debts',
     'cash_logs',
     'stock_logs',
-    'purchase_items',
+    'stock_adjustment_items',
+    'stock_adjustments',
+    'stock_usage_items',
+    'stock_usages',
+    'purchase_order_items',
     'purchase_orders',
     'ingredient_batches',
     'ingredient_units',

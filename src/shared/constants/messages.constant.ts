@@ -1,0 +1,17 @@
+// App error messages (keep this intentionally small)
+export const APP_ERROR_MESSAGES = {
+  UNKNOWN_ERROR: 'An error occurred. Please try again',
+  INTERNAL_ERROR: 'Internal server error',
+  INVALID_REQUEST: 'Invalid request',
+  UNAUTHORIZED: 'Please login first',
+  FORBIDDEN: 'You do not have access',
+  NOT_FOUND: 'Resource not found',
+  CONFLICT: 'Request conflicts with existing data',
+  INVALID_TOKEN: 'Invalid token',
+  TOKEN_EXPIRED: 'Token expired',
+  INVALID_CREDENTIALS: 'Invalid email or password',
+  EMAIL_ALREADY_EXISTS: 'Email already exists',
+  INVALID_CURRENT_PASSWORD: 'Current password is incorrect',
+  USER_NOT_FOUND: 'User not found',
+  ONBOARDING_ALREADY_COMPLETED: 'Onboarding already completed',
+} as const;
