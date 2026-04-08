@@ -16,6 +16,7 @@ export type IngredientUpdatePayload = {
   category?: IngredientCategory;
   base_unit?: string;
   min_stock?: number;
+  is_active?: boolean;
 };
 
 // ----------------------------------------------------------------------------------------------------
@@ -64,6 +65,7 @@ export type UpdateIngredientRequest = {
   category?: IngredientCategory;
   base_unit?: string;
   min_stock?: number;
+  is_active?: boolean;
 };
 
 // ----------------------------------------------------------------------------------------------------

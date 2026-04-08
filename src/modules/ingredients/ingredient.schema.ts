@@ -24,6 +24,7 @@ export const updateIngredientSchema = z
     category: ingredientCategorySchema.optional(),
     base_unit: z.string().min(1, 'Base unit is required').max(50, 'Base unit must be at most 50 characters').optional(),
     min_stock: z.number().min(0, 'Minimum stock must be at least 0').optional(),
+    is_active: z.boolean().optional(),
   })
   .refine((data) => Object.values(data).some((value) => value !== undefined), {
     message: 'At least one field must be provided',

@@ -4,7 +4,7 @@ import { hasDatabaseErrorText, isUniqueViolation } from '@/core/errors/db-error.
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
 import { generateUUID } from '@/shared/utils/crypto.util';
 import * as ingredientRepository from './ingredient.repository';
-import * as ingredientUnitRepository from './ingredient-unit/ingredient-unit.repository';
+import * as ingredientUnitRepository from './ingredient-units/ingredient-unit.repository';
 import type { ReservedSQL } from '@/core/db/client';
 import type {
   CreateIngredientRequest,
@@ -125,7 +125,8 @@ export const update = async ({ merchantId, ingredientId }: GetIngredientRequest,
       name: data.name,
       category: data.category,
       base_unit: data.base_unit,
-      min_stock: data.min_stock !== undefined ? data.min_stock : undefined,
+      min_stock: data.min_stock,
+      is_active: data.is_active,
     });
 
     if (!updated) {
@@ -152,60 +153,6 @@ export const update = async ({ merchantId, ingredientId }: GetIngredientRequest,
       throw error;
     }
     throw internalError('Failed to update ingredient');
-  }
-};
-
-// Activate ingredient
-export const activate = async ({ merchantId, ingredientId }: GetIngredientRequest): Promise<IngredientMap> => {
-  let connection: ReservedSQL | null = null;
-
-  try {
-    connection = await startTransaction();
-
-    const updated = await ingredientRepository.updateStatusByIdAndMerchantId(connection, ingredientId, merchantId, true);
-    if (!updated) {
-      throw notFoundError(APP_ERROR_MESSAGES.NOT_FOUND);
-    }
-
-    await commitTransaction(connection);
-
-    return toIngredientMap(updated);
-  } catch (error) {
-    if (connection) {
-      await rollbackTransaction(connection);
-    }
-
-    if (isAppError(error)) {
-      throw error;
-    }
-    throw internalError('Failed to activate ingredient');
-  }
-};
-
-// Deactivate ingredient
-export const deactivate = async ({ merchantId, ingredientId }: GetIngredientRequest): Promise<IngredientMap> => {
-  let connection: ReservedSQL | null = null;
-
-  try {
-    connection = await startTransaction();
-
-    const updated = await ingredientRepository.updateStatusByIdAndMerchantId(connection, ingredientId, merchantId, false);
-    if (!updated) {
-      throw notFoundError(APP_ERROR_MESSAGES.NOT_FOUND);
-    }
-
-    await commitTransaction(connection);
-
-    return toIngredientMap(updated);
-  } catch (error) {
-    if (connection) {
-      await rollbackTransaction(connection);
-    }
-
-    if (isAppError(error)) {
-      throw error;
-    }
-    throw internalError('Failed to deactivate ingredient');
   }
 };
 

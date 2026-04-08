@@ -47,8 +47,6 @@ Current backend code snapshot used for this audit:
   - `GET /v1/ingredients/:id`
   - `PATCH /v1/ingredients/:id`
   - `DELETE /v1/ingredients/:id` (hard delete when unused)
-  - `PATCH /v1/ingredients/:id/activate`
-  - `PATCH /v1/ingredients/:id/deactivate`
   - `POST /v1/ingredients/:id/units`
   - `PATCH /v1/ingredients/:id/units/:unitId`
   - `DELETE /v1/ingredients/:id/units/:unitId`
@@ -82,7 +80,7 @@ Status legend:
 | `SCREEN_LIST_01_AUTH.md` | PARTIAL | Login covered. Forgot-password and reset-password flow not implemented. |
 | `SCREEN_LIST_02_ONBOARDING.md` | DONE | Register + onboarding status + complete flow are implemented. Step 2-4 are handled via one completion payload and one transaction. |
 | `SCREEN_LIST_03_SUPPLIERS.md` | DONE | Supplier list/create/detail/update/archive endpoints are implemented. |
-| `SCREEN_LIST_04_INGREDIENTS.md` | PARTIAL | Ingredient list/create/detail/update, status actions, and unit CRUD are implemented. Detail usage flags and base-unit edit safeguards are implemented. Remaining scope is broader lifecycle completeness (for example delete/archive flow and full operational integration with stock/purchase modules). |
+| `SCREEN_LIST_04_INGREDIENTS.md` | PARTIAL | Ingredient list/create/detail/update, status toggle via `PATCH /:id` (`is_active`), and unit CRUD are implemented. Detail usage flags and base-unit edit safeguards are implemented. Remaining scope is broader lifecycle completeness (for example delete/archive flow and full operational integration with stock/purchase modules). |
 | `SCREEN_LIST_05_PURCHASE_ORDERS.md` | NOT STARTED | No purchase-orders module/routes yet. |
 | `SCREEN_LIST_06_01_STOCK_MONITORING.md` | NOT STARTED | No stock monitoring endpoints yet. |
 | `SCREEN_LIST_06_02_STOCK_USAGE.md` | NOT STARTED | No stock usage endpoints yet. |

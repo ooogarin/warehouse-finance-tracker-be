@@ -88,7 +88,7 @@ Required onboarding APIs:
 | `/ingredients/[id]/edit` | `GET /v1/ingredients/:id`, `PATCH /v1/ingredients/:id` | IMPLEMENTED |
 | Delete action | `DELETE /v1/ingredients/:id` (hard delete when unused) | IMPLEMENTED |
 | Unit management | `POST /v1/ingredients/:id/units`, `PATCH /v1/ingredients/:id/units/:unitId`, `DELETE /v1/ingredients/:id/units/:unitId` | IMPLEMENTED |
-| Status actions | `PATCH /v1/ingredients/:id/activate`, `PATCH /v1/ingredients/:id/deactivate` | IMPLEMENTED |
+| Status toggle | `PATCH /v1/ingredients/:id` with `is_active` in payload | IMPLEMENTED |
 
 Notes:
 `GET /v1/ingredients/:id` returns `is_used`, `is_base_unit_editable`, and `units` for edit screen rendering.

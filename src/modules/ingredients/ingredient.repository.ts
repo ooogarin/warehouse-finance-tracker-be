@@ -92,42 +92,12 @@ export const updateByIdAndMerchantId = async (
   merchantId: string,
   payload: IngredientUpdatePayload,
 ): Promise<IngredientRow | null> => {
-  const allowedColumns = ['name', 'category', 'base_unit', 'min_stock'] as const;
+  const allowedColumns = ['name', 'category', 'base_unit', 'min_stock', 'is_active'] as const;
 
   const [result] = await db<IngredientRow[]>`
     UPDATE ingredients
     SET
       ${sql(payload, ...allowedColumns)},
-      updated_at = CURRENT_TIMESTAMP
-    WHERE id = ${ingredientId}
-      AND merchant_id = ${merchantId}
-    RETURNING
-      id,
-      merchant_id,
-      name,
-      category,
-      base_unit,
-      stock_quantity::double precision AS stock_quantity,
-      min_stock::double precision AS min_stock,
-      is_active,
-      created_at,
-      updated_at
-  `;
-
-  return result ?? null;
-};
-
-// Update ingredient active status by ID and merchant
-export const updateStatusByIdAndMerchantId = async (
-  db: ReservedSQL,
-  ingredientId: string,
-  merchantId: string,
-  isActive: boolean,
-): Promise<IngredientRow | null> => {
-  const [result] = await db<IngredientRow[]>`
-    UPDATE ingredients
-    SET
-      is_active = ${isActive},
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ${ingredientId}
       AND merchant_id = ${merchantId}

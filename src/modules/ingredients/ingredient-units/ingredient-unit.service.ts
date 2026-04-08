@@ -91,11 +91,11 @@ export const update = async (
     }
 
     const updated = await ingredientUnitRepository.updateByIdAndIngredientId(connection, unitId, ingredientId, {
-      unit_name: data.unit_name !== undefined ? data.unit_name : undefined,
-      conversion_factor: data.conversion_factor !== undefined ? data.conversion_factor : undefined,
-      is_default: data.is_default !== undefined ? data.is_default : undefined,
-      description: data.description !== undefined ? data.description : undefined,
-      is_active: data.is_active !== undefined ? data.is_active : undefined,
+      unit_name: data.unit_name,
+      conversion_factor: data.conversion_factor,
+      is_default: data.is_default,
+      description: data.description,
+      is_active: data.is_active,
     });
 
     if (!updated) {
