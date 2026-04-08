@@ -4,12 +4,12 @@ import { authenticate } from '@/core/middleware/auth.middleware';
 import { resolveMerchantContext } from '@/modules/merchants/merchant.middleware';
 import * as ingredientController from './ingredient.controller';
 import { createIngredientSchema, ingredientListQuerySchema, ingredientParamsSchema, updateIngredientSchema } from './ingredient.schema';
-import * as ingredientUnitController from './ingredient-unit/ingredient-unit.controller';
+import * as ingredientUnitController from './ingredient-units/ingredient-unit.controller';
 import {
   createIngredientUnitSchema,
   ingredientUnitParamsSchema,
   updateIngredientUnitSchema,
-} from './ingredient-unit/ingredient-unit.schema';
+} from './ingredient-units/ingredient-unit.schema';
 import type { AppEnv } from '@/shared/types/context.types';
 
 const ingredientRoutesV1 = new Hono<AppEnv>();
@@ -36,12 +36,6 @@ ingredientRoutesV1.patch(
   zValidator('json', updateIngredientSchema),
   ingredientController.update,
 );
-
-// PATCH /v1/ingredients/:id/activate - Activate ingredient
-ingredientRoutesV1.patch('/:id/activate', zValidator('param', ingredientParamsSchema), ingredientController.activate);
-
-// PATCH /v1/ingredients/:id/deactivate - Deactivate ingredient
-ingredientRoutesV1.patch('/:id/deactivate', zValidator('param', ingredientParamsSchema), ingredientController.deactivate);
 
 // DELETE /v1/ingredients/:id - Delete ingredient
 ingredientRoutesV1.delete('/:id', zValidator('param', ingredientParamsSchema), ingredientController.remove);

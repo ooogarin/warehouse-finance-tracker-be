@@ -88,46 +88,6 @@ export const update = async (c: AppContext) => {
   });
 };
 
-// Activate ingredient
-// PATCH /v1/ingredients/:id/activate
-export const activate = async (c: AppContext) => {
-  const merchantId = c.get('merchantId');
-  const param = getParam<{ id: string }>(c);
-
-  const request: GetIngredientRequest = {
-    merchantId,
-    ingredientId: param.id,
-  };
-
-  const result = await ingredientService.activate(request);
-
-  return successResponse({
-    context: c,
-    data: result,
-    message: 'Ingredient activated successfully',
-  });
-};
-
-// Deactivate ingredient
-// PATCH /v1/ingredients/:id/deactivate
-export const deactivate = async (c: AppContext) => {
-  const merchantId = c.get('merchantId');
-  const param = getParam<{ id: string }>(c);
-
-  const request: GetIngredientRequest = {
-    merchantId,
-    ingredientId: param.id,
-  };
-
-  const result = await ingredientService.deactivate(request);
-
-  return successResponse({
-    context: c,
-    data: result,
-    message: 'Ingredient deactivated successfully',
-  });
-};
-
 // Delete ingredient
 // DELETE /v1/ingredients/:id
 export const remove = async (c: AppContext) => {
