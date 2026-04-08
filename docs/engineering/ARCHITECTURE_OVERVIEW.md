@@ -58,7 +58,7 @@ src/
     suppliers/
     ingredients/
     purchase-orders/
-    stock/
+    inventory/
     cash/
     debts/
 
@@ -121,7 +121,7 @@ The current architecture direction is organized around these first-class modules
 - `suppliers`
 - `ingredients`
 - `purchase-orders`
-- `stock`
+- `inventory`
 - `cash`
 - `debts`
 

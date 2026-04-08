@@ -1,6 +1,6 @@
 import { commitTransaction, rollbackTransaction, startTransaction } from '@/core/db/client';
 import { conflictError, internalError, isAppError } from '@/core/errors/app-error';
-import * as cashRepository from '@/modules/cash/cash.repository';
+import * as cashService from '@/modules/cash/cash.service';
 import * as merchantRepository from '@/modules/merchants/merchant.repository';
 import * as supplierRepository from '@/modules/suppliers/supplier.repository';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
@@ -67,16 +67,14 @@ export const complete = async ({ userId }: GetOnboardingStatusRequest, data: Com
     });
 
     if (data.opening_balance > 0) {
-      await cashRepository.insertOpeningBalanceLog(connection, {
-        id: generateUUID(),
-        merchant_id: merchantId,
-        flow_type: 'in',
-        cash_log_date: new Date().toISOString(),
+      await cashService.recordOpeningBalanceInflow({
+        db: connection,
+        merchantId,
+        cashLogDate: new Date().toISOString(),
         amount: openingBalance,
-        category: 'capital_injection',
         description: 'Opening balance',
-        balance_after: openingBalance,
-        created_by: userId,
+        balanceAfter: openingBalance,
+        createdBy: userId,
       });
     }
 

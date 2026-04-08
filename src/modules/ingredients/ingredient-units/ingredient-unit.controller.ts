@@ -2,13 +2,19 @@ import { successResponse } from '@/core/http/response';
 import { getBody, getParam } from '@/shared/utils/hono.util';
 import * as ingredientUnitService from './ingredient-unit.service';
 import type { AppContext } from '@/shared/types/context.types';
-import type { CreateIngredientUnitRequest, ManageIngredientUnitRequest, UpdateIngredientUnitRequest } from './ingredient-unit.type';
+import type { GetIngredientParams } from '../ingredient.type';
+import type {
+  CreateIngredientUnitRequest,
+  ManageIngredientUnitParams,
+  ManageIngredientUnitRequest,
+  UpdateIngredientUnitRequest,
+} from './ingredient-unit.type';
 
 // Create ingredient unit
 // POST /v1/ingredients/:id/units
 export const create = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const param = getParam<{ id: string }>(c);
+  const param = getParam<GetIngredientParams>(c);
   const data = getBody<CreateIngredientUnitRequest>(c);
 
   const result = await ingredientUnitService.create(
@@ -31,7 +37,7 @@ export const create = async (c: AppContext) => {
 // PATCH /v1/ingredients/:id/units/:unitId
 export const update = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const param = getParam<{ id: string; unitId: string }>(c);
+  const param = getParam<ManageIngredientUnitParams>(c);
   const data = getBody<UpdateIngredientUnitRequest>(c);
 
   const request: ManageIngredientUnitRequest = {
@@ -53,7 +59,7 @@ export const update = async (c: AppContext) => {
 // DELETE /v1/ingredients/:id/units/:unitId
 export const remove = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const param = getParam<{ id: string; unitId: string }>(c);
+  const param = getParam<ManageIngredientUnitParams>(c);
 
   const request: ManageIngredientUnitRequest = {
     merchantId,

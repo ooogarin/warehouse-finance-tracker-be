@@ -14,6 +14,7 @@ import { authRoutesV1 } from '@/modules/auth/auth-v1.route';
 import { ingredientRoutesV1 } from '@/modules/ingredients/ingredient-v1.route';
 import { merchantRoutesV1 } from '@/modules/merchants/merchant-v1.route';
 import { onboardingRoutesV1 } from '@/modules/onboarding/onboarding-v1.route';
+import { purchaseOrderRoutesV1 } from '@/modules/purchase-orders/purchase-order-v1.route';
 import { supplierRoutesV1 } from '@/modules/suppliers/supplier-v1.route';
 import type { AppEnv } from '@/shared/types/context.types';
 
@@ -89,6 +90,7 @@ const createApp = () => {
   app.route('/v1/merchants', merchantRoutesV1);
   app.route('/v1/suppliers', supplierRoutesV1);
   app.route('/v1/ingredients', ingredientRoutesV1);
+  app.route('/v1/purchase-orders', purchaseOrderRoutesV1);
 
   // Internal routes (health, metrics)
   // app.route('/internal', internalRoutes);

@@ -1,4 +1,37 @@
+import type { z } from 'zod';
 import type { GetIngredientRequest } from '../ingredient.type';
+import type {
+  createIngredientUnitSchema,
+  ingredientUnitParamsSchema,
+  updateIngredientUnitSchema,
+} from './ingredient-unit.schema';
+
+// ----------------------------------------------------------------------------------------------------
+// Request contracts
+// ----------------------------------------------------------------------------------------------------
+
+export type ManageIngredientUnitParams = z.infer<typeof ingredientUnitParamsSchema>;
+
+export type CreateIngredientUnitRequest = z.infer<typeof createIngredientUnitSchema>;
+
+export type UpdateIngredientUnitRequest = z.infer<typeof updateIngredientUnitSchema>;
+
+export type ManageIngredientUnitRequest = GetIngredientRequest & {
+  unitId: string;
+};
+
+// ----------------------------------------------------------------------------------------------------
+// Service operations
+// ----------------------------------------------------------------------------------------------------
+
+export type IngredientUnitMap = {
+  id: string;
+  unit_name: string;
+  conversion_factor: number;
+  is_default: boolean;
+  description: string | null;
+  is_active: boolean;
+};
 
 // ----------------------------------------------------------------------------------------------------
 // Repository payloads
@@ -37,39 +70,3 @@ export interface IngredientUnitRow {
   created_at: string;
   updated_at: string;
 }
-
-// ----------------------------------------------------------------------------------------------------
-// Request contracts
-// ----------------------------------------------------------------------------------------------------
-
-export type ManageIngredientUnitRequest = GetIngredientRequest & {
-  unitId: string;
-};
-
-export type CreateIngredientUnitRequest = {
-  unit_name: string;
-  conversion_factor: number;
-  is_default?: boolean;
-  description?: string;
-};
-
-export type UpdateIngredientUnitRequest = {
-  unit_name?: string;
-  conversion_factor?: number;
-  is_default?: boolean;
-  description?: string;
-  is_active?: boolean;
-};
-
-// ----------------------------------------------------------------------------------------------------
-// Service operations
-// ----------------------------------------------------------------------------------------------------
-
-export type IngredientUnitMap = {
-  id: string;
-  unit_name: string;
-  conversion_factor: number;
-  is_default: boolean;
-  description: string | null;
-  is_active: boolean;
-};

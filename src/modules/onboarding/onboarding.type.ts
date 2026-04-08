@@ -2,7 +2,7 @@ import type { z } from 'zod';
 import type { onboardingCompleteSchema } from './onboarding.schema';
 
 // ----------------------------------------------------------------------------------------------------
-// Service requests
+// Request contracts
 // ----------------------------------------------------------------------------------------------------
 
 export type GetOnboardingStatusRequest = {

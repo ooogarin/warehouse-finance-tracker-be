@@ -117,6 +117,24 @@ export const updateByIdAndMerchantId = async (
   return result ?? null;
 };
 
+// Increase ingredient stock quantity and return latest balance
+export const increaseStockQuantityById = async (db: ReservedSQL, ingredientId: string, quantity: number): Promise<number> => {
+  const [result] = await db<{ stock_quantity: number }[]>`
+    UPDATE ingredients
+    SET
+      stock_quantity = stock_quantity + ${quantity},
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${ingredientId}
+    RETURNING stock_quantity::double precision AS stock_quantity
+  `;
+
+  if (!result) {
+    throw new Error('Ingredient stock update failed');
+  }
+
+  return result.stock_quantity;
+};
+
 // Delete ingredient by ID and merchant
 export const deleteByIdAndMerchantId = async (db: ReservedSQL, ingredientId: string, merchantId: string): Promise<boolean> => {
   const [result] = await db<{ id: string }[]>`

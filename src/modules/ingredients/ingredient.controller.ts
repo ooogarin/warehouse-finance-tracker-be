@@ -4,8 +4,9 @@ import * as ingredientService from './ingredient.service';
 import type { AppContext } from '@/shared/types/context.types';
 import type {
   CreateIngredientRequest,
+  GetIngredientParams,
   GetIngredientRequest,
-  IngredientCategory,
+  ListIngredientsQuery,
   ListIngredientsRequest,
   UpdateIngredientRequest,
 } from './ingredient.type';
@@ -14,7 +15,7 @@ import type {
 // GET /v1/ingredients
 export const list = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const query = getQuery<{ search?: string; category?: IngredientCategory }>(c);
+  const query = getQuery<ListIngredientsQuery>(c);
 
   const request: ListIngredientsRequest = {
     merchantId,
@@ -35,7 +36,7 @@ export const list = async (c: AppContext) => {
 // GET /v1/ingredients/:id
 export const getDetail = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const param = getParam<{ id: string }>(c);
+  const param = getParam<GetIngredientParams>(c);
 
   const request: GetIngredientRequest = {
     merchantId,
@@ -71,7 +72,7 @@ export const create = async (c: AppContext) => {
 // PATCH /v1/ingredients/:id
 export const update = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const param = getParam<{ id: string }>(c);
+  const param = getParam<GetIngredientParams>(c);
   const data = getBody<UpdateIngredientRequest>(c);
 
   const request: GetIngredientRequest = {
@@ -92,7 +93,7 @@ export const update = async (c: AppContext) => {
 // DELETE /v1/ingredients/:id
 export const remove = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const param = getParam<{ id: string }>(c);
+  const param = getParam<GetIngredientParams>(c);
 
   const request: GetIngredientRequest = {
     merchantId,

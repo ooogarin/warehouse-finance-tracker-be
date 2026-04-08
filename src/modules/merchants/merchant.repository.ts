@@ -82,3 +82,18 @@ export const insertUserMerchant = async (db: ReservedSQL, payload: UserMerchantI
     INSERT INTO user_merchants ${sql(payload, ...allowedColumns)}
   `;
 };
+
+// Decrease merchant cash balance and return latest balance
+export const decreaseCashBalanceById = async (db: ReservedSQL, merchantId: string, amount: number): Promise<number | null> => {
+  const [result] = await db<{ cash_balance: number }[]>`
+    UPDATE merchants
+    SET
+      cash_balance = cash_balance - ${amount},
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${merchantId}
+      AND cash_balance >= ${amount}
+    RETURNING cash_balance::double precision AS cash_balance
+  `;
+
+  return result?.cash_balance ?? null;
+};

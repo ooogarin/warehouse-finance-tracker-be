@@ -97,9 +97,9 @@ Notes:
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/purchase-orders` | `GET /v1/purchase-orders` | PLANNED |
-| `/purchase-orders/new` | `POST /v1/purchase-orders` | PLANNED |
-| `/purchase-orders/[id]` | `GET /v1/purchase-orders/:id` | PLANNED |
+| `/purchase-orders` | `GET /v1/purchase-orders` | IMPLEMENTED |
+| `/purchase-orders/new` | `POST /v1/purchase-orders` | IMPLEMENTED |
+| `/purchase-orders/[id]` | `GET /v1/purchase-orders/:id` | IMPLEMENTED |
 
 ### `SCREEN_LIST_06_01_STOCK_MONITORING.md`
 
