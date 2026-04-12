@@ -1,11 +1,6 @@
 import type { z } from 'zod';
+import type { createPurchaseOrderSchema, purchaseOrderListQuerySchema, purchaseOrderParamsSchema } from './purchase-order.schema';
 import type { PurchaseOrderItemMap, PurchaseOrderItemRow } from './purchase-order-items/purchase-order-item.type';
-import type {
-  createPurchaseOrderSchema,
-  purchaseOrderListQuerySchema,
-  purchaseOrderParamsSchema,
-} from './purchase-order.schema';
-
 
 // ----------------------------------------------------------------------------------------------------
 // Request contracts
@@ -80,6 +75,13 @@ export type PurchaseOrderDetailContext = {
   items: PurchaseOrderItemRow[];
 };
 
+export type IngredientOperationalContext = {
+  ingredient_name: string;
+  ingredient_is_active: boolean;
+  ingredient_unit_name: string;
+  unit_is_active: boolean;
+  unit_conversion_factor: number;
+};
 
 // ----------------------------------------------------------------------------------------------------
 // Repository payloads

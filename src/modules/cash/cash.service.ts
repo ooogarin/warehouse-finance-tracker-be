@@ -1,7 +1,7 @@
 import { validationError } from '@/core/errors/app-error';
 import * as merchantRepository from '@/modules/merchants/merchant.repository';
 import * as cashLogRepository from './cash-log.repository';
-import type { ReservedSQL } from '@/core/db/client';
+import type { RecordOpeningBalanceInflowRequest, RecordPurchasePaymentOutflowRequest } from './cash-log.type';
 
 // Record opening balance cash log after merchant creation
 export const recordOpeningBalanceInflow = async ({
@@ -12,15 +12,7 @@ export const recordOpeningBalanceInflow = async ({
   description,
   balanceAfter,
   createdBy,
-}: {
-  db: ReservedSQL;
-  merchantId: string;
-  cashLogDate: string;
-  amount: string | number;
-  description: string;
-  balanceAfter: string | number;
-  createdBy: string;
-}): Promise<void> => {
+}: RecordOpeningBalanceInflowRequest): Promise<void> => {
   await cashLogRepository.insert(db, {
     id: crypto.randomUUID(),
     merchant_id: merchantId,
@@ -43,15 +35,7 @@ export const recordPurchasePaymentOutflow = async ({
   amount,
   description,
   createdBy,
-}: {
-  db: ReservedSQL;
-  merchantId: string;
-  purchaseOrderId: string;
-  cashLogDate: string;
-  amount: number;
-  description: string;
-  createdBy: string;
-}): Promise<number> => {
+}: RecordPurchasePaymentOutflowRequest): Promise<number> => {
   const balanceAfter = await merchantRepository.decreaseCashBalanceById(db, merchantId, amount);
   if (balanceAfter === null) {
     throw validationError('Insufficient merchant cash balance for paid_cash');

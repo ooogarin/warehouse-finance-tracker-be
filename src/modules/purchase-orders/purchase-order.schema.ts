@@ -35,7 +35,7 @@ export const createPurchaseOrderSchema = z.object({
         ingredient_id: z.string().uuid('Ingredient ID must be a valid UUID'),
         ingredient_unit_id: z.string().uuid('Ingredient unit ID must be a valid UUID'),
         quantity: z.number().gt(0, 'Quantity must be greater than 0'),
-        unit_price: z.number().min(0, 'Unit price must be at least 0'),
+        unit_price: z.number().gt(0, 'Unit price must be greater than 0'),
         notes: z.string().max(2000, 'Item notes must be at most 2000 characters').optional(),
       }),
     )

@@ -1,5 +1,5 @@
-import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
+import { appValidator } from '@/core/http/validator';
 import { authenticate } from '@/core/middleware/auth.middleware';
 import { resolveMerchantContext } from '@/modules/merchants/merchant.middleware';
 import * as purchaseOrderController from './purchase-order.controller';
@@ -15,12 +15,12 @@ purchaseOrderRoutesV1.use('*', authenticate);
 purchaseOrderRoutesV1.use('*', resolveMerchantContext);
 
 // GET /v1/purchase-orders - List purchase orders
-purchaseOrderRoutesV1.get('/', zValidator('query', purchaseOrderListQuerySchema), purchaseOrderController.list);
+purchaseOrderRoutesV1.get('/', appValidator('query', purchaseOrderListQuerySchema), purchaseOrderController.list);
 
 // POST /v1/purchase-orders - Create purchase order
-purchaseOrderRoutesV1.post('/', zValidator('json', createPurchaseOrderSchema), purchaseOrderController.create);
+purchaseOrderRoutesV1.post('/', appValidator('json', createPurchaseOrderSchema), purchaseOrderController.create);
 
 // GET /v1/purchase-orders/:id - Get purchase order detail
-purchaseOrderRoutesV1.get('/:id', zValidator('param', purchaseOrderParamsSchema), purchaseOrderController.getDetail);
+purchaseOrderRoutesV1.get('/:id', appValidator('param', purchaseOrderParamsSchema), purchaseOrderController.getDetail);
 
 export { purchaseOrderRoutesV1 };

@@ -1,3 +1,29 @@
+import type { ReservedSQL } from '@/core/db/client';
+
+// ----------------------------------------------------------------------------------------------------
+// Service operations
+// ----------------------------------------------------------------------------------------------------
+
+export type RecordOpeningBalanceInflowRequest = {
+  db: ReservedSQL;
+  merchantId: string;
+  cashLogDate: string;
+  amount: string | number;
+  description: string;
+  balanceAfter: string | number;
+  createdBy: string;
+};
+
+export type RecordPurchasePaymentOutflowRequest = {
+  db: ReservedSQL;
+  merchantId: string;
+  purchaseOrderId: string;
+  cashLogDate: string;
+  amount: number;
+  description: string;
+  createdBy: string;
+};
+
 // ----------------------------------------------------------------------------------------------------
 // Repository payloads
 // ----------------------------------------------------------------------------------------------------

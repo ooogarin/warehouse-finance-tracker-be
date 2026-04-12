@@ -25,9 +25,9 @@ export const successResponse = <T>({
 
   const response: ApiResponse<T> = {
     success: true,
-    data,
     message: message ?? 'Success',
     ...(pagination && { pagination }),
+    data,
     meta,
   };
 

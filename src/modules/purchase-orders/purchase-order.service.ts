@@ -14,6 +14,7 @@ import * as purchaseOrderItemRepository from './purchase-order-items/purchase-or
 import type {
   CreatePurchaseOrderRequest,
   GetPurchaseOrderRequest,
+  IngredientOperationalContext,
   ListPurchaseOrdersRequest,
   PurchaseOrderCreateMap,
   PurchaseOrderDetailMap,
@@ -108,7 +109,7 @@ export const getDetail = async ({ merchantId, purchaseOrderId }: GetPurchaseOrde
   }
 };
 
-// Create purchase order and process all side effects in one transaction
+// Create purchase order and process stock, cash, and debt side effects atomically.
 export const create = async (merchantId: string, userId: string, data: CreatePurchaseOrderRequest): Promise<PurchaseOrderCreateMap> => {
   let connection: Awaited<ReturnType<typeof startTransaction>> | null = null;
 
@@ -121,10 +122,12 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
     const totalAmount = sumTotalAmount(data.items);
     validatePaymentSplit({ totalAmount, paidCash: paid_cash, paidOwner: paid_owner, debtAmount: debt_amount });
 
+    // Supplier debt needs a supplier owner, otherwise later debt tracking cannot be reconciled.
     if (debt_amount > 0 && !data.supplier_id) {
       throw validationError('Supplier is required when debt_amount is greater than 0');
     }
 
+    // Supplier is optional for cash-only or owner-funded purchases, but must be valid when provided.
     if (data.supplier_id) {
       const supplier = await supplierRepository.getOneByIdAndMerchantId(data.supplier_id, merchantId);
       if (!supplier) {
@@ -134,6 +137,7 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
 
     const itemContexts = new Map<string, IngredientOperationalContext>();
     for (const item of data.items) {
+      // Load and validate item references before opening the transaction to avoid partial writes.
       const context = await getIngredientOperationalContext(item.ingredient_id, item.ingredient_unit_id, merchantId);
       if (!context.ingredient_is_active) {
         throw validationError(`Ingredient "${context.ingredient_name}" is inactive`);
@@ -147,6 +151,7 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
       itemContexts.set(`${item.ingredient_id}:${item.ingredient_unit_id}`, context);
     }
 
+    // Empty invoice input falls back to the merchant's daily purchase-order sequence.
     const invoiceNumber = data.invoice_number?.trim()
       ? data.invoice_number.trim()
       : await generateInvoiceNumber(merchantId, data.purchase_date);
@@ -173,6 +178,7 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
         throw validationError('Ingredient unit context is missing');
       }
 
+      // Inventory is stored in base units, while purchase items can use any valid conversion unit.
       const baseUnitQuantity = item.quantity * context.unit_conversion_factor;
       const baseUnitPrice = context.unit_conversion_factor > 0 ? item.unit_price / context.unit_conversion_factor : 0;
 
@@ -188,16 +194,14 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
 
       const stockBalanceAfter = await ingredientRepository.increaseStockQuantityById(connection, item.ingredient_id, baseUnitQuantity);
 
-      if (baseUnitPrice > 0) {
-        await ingredientBatchRepository.insert(connection, {
-          id: generateUUID(),
-          ingredient_id: item.ingredient_id,
-          qty_initial: baseUnitQuantity,
-          qty_remaining: baseUnitQuantity,
-          cost_per_unit: baseUnitPrice,
-          purchase_date: data.purchase_date,
-        });
-      }
+      await ingredientBatchRepository.insert(connection, {
+        id: generateUUID(),
+        ingredient_id: item.ingredient_id,
+        qty_initial: baseUnitQuantity,
+        qty_remaining: baseUnitQuantity,
+        cost_per_unit: baseUnitPrice,
+        purchase_date: data.purchase_date,
+      });
 
       await stockLogRepository.insert(connection, {
         id: generateUUID(),
@@ -214,6 +218,7 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
     }
 
     if (paid_cash > 0) {
+      // Cash payments affect merchant cash immediately.
       await cashService.recordPurchasePaymentOutflow({
         db: connection,
         merchantId,
@@ -226,6 +231,7 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
     }
 
     if (paid_owner > 0) {
+      // Owner-funded payment is tracked as merchant debt to the owner.
       await debtService.create(connection, {
         id: generateUUID(),
         merchant_id: merchantId,
@@ -240,6 +246,7 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
     }
 
     if (debt_amount > 0 && data.supplier_id) {
+      // Remaining supplier credit is tracked separately from owner funding.
       await debtService.create(connection, {
         id: generateUUID(),
         merchant_id: merchantId,
@@ -273,6 +280,11 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
   }
 };
 
+// ====================================================================================================
+// Helpers
+// ====================================================================================================
+
+// Convert purchase order list row from repository to map for API response
 const toPurchaseOrderListMap = (row: PurchaseOrderListRow): PurchaseOrderListMap => {
   return {
     id: row.id,
@@ -286,10 +298,12 @@ const toPurchaseOrderListMap = (row: PurchaseOrderListRow): PurchaseOrderListMap
   };
 };
 
+// Calculate total amount from purchase order items
 const sumTotalAmount = (items: CreatePurchaseOrderRequest['items']): number => {
   return items.reduce((total, item) => total + item.quantity * item.unit_price, 0);
 };
 
+// Keep payment split exact enough for floating-point money calculations.
 const validatePaymentSplit = ({
   totalAmount,
   paidCash,
@@ -311,6 +325,7 @@ const validatePaymentSplit = ({
   }
 };
 
+// Derive the API payment status from the linked debt state.
 const derivePaymentStatus = ({
   debt_amount,
   debt_status,
@@ -335,6 +350,7 @@ const derivePaymentStatus = ({
   return 'belum_lunas';
 };
 
+// Generate invoice number based on purchase date and daily sequence
 const generateInvoiceNumber = async (merchantId: string, purchaseDate: string): Promise<string> => {
   const date = new Date(purchaseDate);
   if (Number.isNaN(date.getTime())) {
@@ -347,14 +363,7 @@ const generateInvoiceNumber = async (merchantId: string, purchaseDate: string): 
   return `PO-${dateToken}-${String(sequence).padStart(4, '0')}`;
 };
 
-type IngredientOperationalContext = {
-  ingredient_name: string;
-  ingredient_is_active: boolean;
-  ingredient_unit_name: string;
-  unit_is_active: boolean;
-  unit_conversion_factor: number;
-};
-
+// Get ingredient and unit information needed for purchase order processing and validation
 const getIngredientOperationalContext = async (
   ingredientId: string,
   ingredientUnitId: string,
