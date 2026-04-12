@@ -1,10 +1,6 @@
 import type { z } from 'zod';
 import type { GetIngredientRequest } from '../ingredient.type';
-import type {
-  createIngredientUnitSchema,
-  ingredientUnitParamsSchema,
-  updateIngredientUnitSchema,
-} from './ingredient-unit.schema';
+import type { createIngredientUnitSchema, ingredientUnitParamsSchema, updateIngredientUnitSchema } from './ingredient-unit.schema';
 
 // ----------------------------------------------------------------------------------------------------
 // Request contracts

@@ -1,10 +1,5 @@
 import type { z } from 'zod';
-import type {
-  createSupplierSchema,
-  supplierListQuerySchema,
-  supplierParamsSchema,
-  updateSupplierSchema,
-} from './supplier.schema';
+import type { createSupplierSchema, supplierListQuerySchema, supplierParamsSchema, updateSupplierSchema } from './supplier.schema';
 
 // ----------------------------------------------------------------------------------------------------
 // Request contracts
