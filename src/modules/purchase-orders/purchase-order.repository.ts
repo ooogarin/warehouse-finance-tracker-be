@@ -1,14 +1,11 @@
 import { sql } from '@/core/db/client';
 import type { ReservedSQL } from '@/core/db/client';
-import type { PurchaseOrderHeaderRow, PurchaseOrderInsertPayload, PurchaseOrderListRow } from './purchase-order.type';
-
-type ListByMerchantIdOptions = {
-  merchantId: string;
-  search?: string;
-  supplierId?: string;
-  dateFrom?: string;
-  dateTo?: string;
-};
+import type {
+  PurchaseOrderHeaderRow,
+  PurchaseOrderInsertPayload,
+  PurchaseOrderListByMerchantIdOptions,
+  PurchaseOrderListRow,
+} from './purchase-order.type';
 
 // Get purchase order list by merchant
 export const listByMerchantId = async ({
@@ -17,7 +14,7 @@ export const listByMerchantId = async ({
   supplierId,
   dateFrom,
   dateTo,
-}: ListByMerchantIdOptions): Promise<PurchaseOrderListRow[]> => {
+}: PurchaseOrderListByMerchantIdOptions): Promise<PurchaseOrderListRow[]> => {
   const searchPattern = search?.trim() ? `%${search.trim()}%` : null;
 
   return await sql<PurchaseOrderListRow[]>`

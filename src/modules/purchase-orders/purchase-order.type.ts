@@ -100,6 +100,14 @@ export type PurchaseOrderInsertPayload = {
   notes?: string | null;
 };
 
+export type PurchaseOrderListByMerchantIdOptions = {
+  merchantId: string;
+  search?: string;
+  supplierId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
 // ----------------------------------------------------------------------------------------------------
 // Repository responses
 // ----------------------------------------------------------------------------------------------------

@@ -10,3 +10,17 @@ export type IngredientBatchInsertPayload = {
   cost_per_unit: number;
   purchase_date: string;
 };
+
+// ----------------------------------------------------------------------------------------------------
+// Repository responses
+// ----------------------------------------------------------------------------------------------------
+
+export type IngredientBatchRow = {
+  id: string;
+  ingredient_id: string;
+  qty_initial: number;
+  qty_remaining: number;
+  cost_per_unit: number;
+  purchase_date: string;
+  batch_value: number;
+};

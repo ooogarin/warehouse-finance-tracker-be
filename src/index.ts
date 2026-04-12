@@ -11,7 +11,10 @@ import { requestLogger } from '@/core/middleware/logger.middleware';
 import { requestIdMiddleware } from '@/core/middleware/request-id.middleware';
 import { authRoutes } from '@/modules/auth/auth.route';
 import { authRoutesV1 } from '@/modules/auth/auth-v1.route';
+import { cashRoutesV1 } from '@/modules/cash/cash-v1.route';
+import { debtRoutesV1 } from '@/modules/debts/debt-v1.route';
 import { ingredientRoutesV1 } from '@/modules/ingredients/ingredient-v1.route';
+import { stockRoutesV1 } from '@/modules/inventory/stock-v1.route';
 import { merchantRoutesV1 } from '@/modules/merchants/merchant-v1.route';
 import { onboardingRoutesV1 } from '@/modules/onboarding/onboarding-v1.route';
 import { purchaseOrderRoutesV1 } from '@/modules/purchase-orders/purchase-order-v1.route';
@@ -91,6 +94,9 @@ const createApp = () => {
   app.route('/v1/suppliers', supplierRoutesV1);
   app.route('/v1/ingredients', ingredientRoutesV1);
   app.route('/v1/purchase-orders', purchaseOrderRoutesV1);
+  app.route('/v1/stock', stockRoutesV1);
+  app.route('/v1/cash', cashRoutesV1);
+  app.route('/v1/debts', debtRoutesV1);
 
   // Internal routes (health, metrics)
   // app.route('/internal', internalRoutes);

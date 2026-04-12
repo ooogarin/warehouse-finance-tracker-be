@@ -97,3 +97,21 @@ export const decreaseCashBalanceById = async (db: ReservedSQL, merchantId: strin
 
   return result?.cash_balance ?? null;
 };
+
+// Increase merchant cash balance and return latest balance
+export const increaseCashBalanceById = async (db: ReservedSQL, merchantId: string, amount: number): Promise<number> => {
+  const [result] = await db<{ cash_balance: number }[]>`
+    UPDATE merchants
+    SET
+      cash_balance = cash_balance + ${amount},
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${merchantId}
+    RETURNING cash_balance::double precision AS cash_balance
+  `;
+
+  if (!result) {
+    throw new Error('Merchant cash balance update failed');
+  }
+
+  return result.cash_balance;
+};
