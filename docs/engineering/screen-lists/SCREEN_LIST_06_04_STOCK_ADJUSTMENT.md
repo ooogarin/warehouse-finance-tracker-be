@@ -64,7 +64,7 @@ Jika flow_type = 'in':
 4. Buat ingredient_batches baru:
    qty_initial    = qty dalam base_unit
    qty_remaining  = qty dalam base_unit
-   cost_per_unit  = unit_price yang diinput user (dalam base_unit)
+   cost_per_unit  = unit_price input user / conversion_factor
    purchase_date  = adjustment_date
 5. Update ingredients.stock_quantity (+qty dalam base_unit)
 6. Buat stock_logs:
@@ -320,7 +320,7 @@ Tidak ada item → inline error: "Minimal 1 item harus ditambahkan"
 | DEV-01 | Semua side effects saat disimpan harus diproses dalam **satu DB transaction** — jika salah satu gagal, seluruh transaksi di-rollback |
 | DEV-02 | Qty di `stock_adjustment_items` disimpan dalam unit pilihan user. BE kalkulasi konversi ke base_unit menggunakan `ingredient_units.conversion_factor` sebelum update `ingredients.stock_quantity`, `ingredient_batches`, dan `stock_logs` |
 | DEV-03 | `flow_type = 'in'`: `unit_price` dari input user dikonversi ke base_unit (`unit_price / conversion_factor`) sebelum disimpan ke `ingredient_batches.cost_per_unit` |
-| DEV-04 | `flow_type = 'out'`: `unit_price` di `stock_adjustment_items` = weighted average dari semua batch yang terpakai: SUM(batch_qty × cost_per_unit) / total_qty_base_unit |
+| DEV-04 | `flow_type = 'out'`: `unit_price` di `stock_adjustment_items` disimpan dalam unit pilihan user agar `subtotal = quantity × unit_price` tetap benar. Nilainya dihitung dari total FIFO value / quantity pilihan user |
 | DEV-05 | `stock_logs` dibuat **per batch yang terpakai** untuk `flow_type = 'out'` — jika satu item span 2 batch, buat 2 baris stock_log dengan `reference_id` yang sama |
 | DEV-06 | FIFO saat menyimpan `flow_type = 'out'`: kurangi `qty_remaining` dari batch dengan `purchase_date` terlama dulu. Jika qty melebihi satu batch, lanjut ke batch berikutnya |
 | DEV-07 | Estimasi nilai di Step 2 untuk `flow_type = 'out'` dikalkulasi BE saat user selesai input qty (on blur) — endpoint terpisah. Untuk `flow_type = 'in'`: kalkulasi di FE (qty × harga input) |

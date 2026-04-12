@@ -50,6 +50,36 @@ Current backend code snapshot used for this audit:
   - `POST /v1/ingredients/:id/units`
   - `PATCH /v1/ingredients/:id/units/:unitId`
   - `DELETE /v1/ingredients/:id/units/:unitId`
+- Purchase orders:
+  - `GET /v1/purchase-orders`
+  - `POST /v1/purchase-orders`
+  - `GET /v1/purchase-orders/:id`
+- Stock:
+  - `GET /v1/stock`
+  - `GET /v1/stock/:ingredientId`
+  - `GET /v1/stock/:ingredientId/logs`
+  - `GET /v1/stock/usages`
+  - `POST /v1/stock/usages`
+  - `POST /v1/stock/usages/estimate`
+  - `GET /v1/stock/usages/:id`
+  - `GET /v1/stock/wastes`
+  - `POST /v1/stock/wastes`
+  - `POST /v1/stock/wastes/estimate`
+  - `GET /v1/stock/wastes/:id`
+  - `GET /v1/stock/adjustments`
+  - `POST /v1/stock/adjustments`
+  - `POST /v1/stock/adjustments/estimate-out`
+  - `GET /v1/stock/adjustments/:id`
+- Cash:
+  - `GET /v1/cash`
+  - `GET /v1/cash/:id`
+  - `POST /v1/cash/in`
+  - `POST /v1/cash/out`
+- Debts:
+  - `GET /v1/debts`
+  - `POST /v1/debts`
+  - `GET /v1/debts/:id`
+  - `POST /v1/debts/:id/payments`
 - Core runtime:
   - Global error handling
   - JWT auth middleware
@@ -60,10 +90,6 @@ Current backend code snapshot used for this audit:
 ### What Is Not Implemented Yet (API Layer)
 
 - Merchant settings endpoints
-- Purchase orders module
-- Stock modules
-- Cash module
-- Debts module
 - Dashboard and reports endpoints
 - Forgot-password and reset-password public flow
 
@@ -81,13 +107,13 @@ Status legend:
 | `SCREEN_LIST_02_ONBOARDING.md` | DONE | Register + onboarding status + complete flow are implemented. Step 2-4 are handled via one completion payload and one transaction. |
 | `SCREEN_LIST_03_SUPPLIERS.md` | DONE | Supplier list/create/detail/update/archive endpoints are implemented. |
 | `SCREEN_LIST_04_INGREDIENTS.md` | PARTIAL | Ingredient list/create/detail/update, status toggle via `PATCH /:id` (`is_active`), and unit CRUD are implemented. Detail usage flags and base-unit edit safeguards are implemented. Remaining scope is broader lifecycle completeness (for example delete/archive flow and full operational integration with stock/purchase modules). |
-| `SCREEN_LIST_05_PURCHASE_ORDERS.md` | NOT STARTED | No purchase-orders module/routes yet. |
-| `SCREEN_LIST_06_01_STOCK_MONITORING.md` | NOT STARTED | No stock monitoring endpoints yet. |
-| `SCREEN_LIST_06_02_STOCK_USAGE.md` | NOT STARTED | No stock usage endpoints yet. |
-| `SCREEN_LIST_06_03_STOCK_WASTE.md` | NOT STARTED | No stock waste endpoints yet. |
-| `SCREEN_LIST_06_04_STOCK_ADJUSTMENT.md` | NOT STARTED | No stock adjustment endpoints yet. |
-| `SCREEN_LIST_07_CASH_MANAGEMENT.md` | NOT STARTED | No cash endpoints yet. |
-| `SCREEN_LIST_08_DEBT_MANAGEMENT.md` | NOT STARTED | No debt endpoints yet. |
+| `SCREEN_LIST_05_PURCHASE_ORDERS.md` | DONE | Purchase order list/create/detail endpoints are implemented. Create flow writes purchase orders, items, stock quantity, ingredient batches, stock logs, cash outflow for `paid_cash`, and debts for `paid_owner` / supplier `debt_amount` in one transaction. |
+| `SCREEN_LIST_06_01_STOCK_MONITORING.md` | DONE | Stock list/detail/log endpoints are implemented. List/detail include summary, inventory value, stock status, formatted stock quantities, active batches, and movement history. |
+| `SCREEN_LIST_06_02_STOCK_USAGE.md` | DONE | Stock usage list/create/detail and FIFO COGS estimate endpoints are implemented. Create flow writes usage header/items, consumes FIFO batches, updates ingredient stock, and writes stock logs in one transaction. |
+| `SCREEN_LIST_06_03_STOCK_WASTE.md` | DONE | Stock waste list/create/detail and FIFO waste estimate endpoints are implemented. Create flow writes waste header/items, consumes FIFO batches, updates ingredient stock, and writes stock logs in one transaction. |
+| `SCREEN_LIST_06_04_STOCK_ADJUSTMENT.md` | DONE | Stock adjustment list/create/detail and FIFO out estimate endpoints are implemented. Create flow supports mixed in/out items, writes adjustment header/items, updates ingredient batches and stock quantity, and writes stock logs in one transaction. |
+| `SCREEN_LIST_07_CASH_MANAGEMENT.md` | DONE | Cash list/detail plus manual cash-in and cash-out endpoints are implemented. Cash balance and cash log writes are transaction-safe. |
+| `SCREEN_LIST_08_DEBT_MANAGEMENT.md` | DONE | Debt list/detail/create plus debt payment endpoint are implemented. Debt payment writes update debt state and create cash outflow in one transaction. |
 | `SCREEN_LIST_09_DASHBOARD.md` | NOT STARTED | No dashboard endpoint yet. |
 | `SCREEN_LIST_10_REPORTS.md` | NOT STARTED | No reports endpoints yet. |
 | `SCREEN_LIST_11_SETTINGS.md` | PARTIAL | Account profile/password is covered by auth v1. Merchant settings is not implemented. |
@@ -97,16 +123,13 @@ Status legend:
 1. Merchant settings API is missing.
    - Required by `SCR-SET-02`.
 
-2. Purchase order and stock operations are missing.
-   - Required to unlock inventory and costing flows used by dashboard and reports.
+2. Financial read/write endpoints are now implemented.
+   - Remaining financial scope is downstream reporting/dashboard read models, not core cash/debt CRUD/payment flows.
 
-3. Financial modules are missing.
-   - Cash and debt modules are still not implemented.
-
-4. Read-model endpoints are missing.
+3. Read-model endpoints are missing.
    - Dashboard and reports depend on operational modules and aggregation queries.
 
-5. Ingredient lifecycle completeness is still partial.
+4. Ingredient lifecycle completeness is still partial.
    - Advanced rules for detail/edit are covered.
    - Delete/archive flow and downstream operational integrations are not fully complete.
 
@@ -182,8 +205,8 @@ Acceptance criteria:
 
 ### Phase 5 — Transactional Operations
 
-- [ ] Implement purchase orders module (`SCR-PO-*`).
-- [ ] Implement stock usage/waste/adjustment modules (`SCR-STK-*` writes).
+- [x] Implement purchase orders module (`SCR-PO-*`).
+- [x] Implement stock adjustment module (`SCR-STK-*` writes).
 - [ ] Ensure stock logs, cash logs, and debts side effects are consistent.
 
 Acceptance criteria:
@@ -193,8 +216,8 @@ Acceptance criteria:
 
 ### Phase 6 — Financial Operations and Read Models
 
-- [ ] Implement cash management endpoints (`SCR-CSH-*`).
-- [ ] Implement debt management endpoints (`SCR-DEBT-*`).
+- [x] Implement cash management endpoints (`SCR-CSH-*`).
+- [x] Implement debt management endpoints (`SCR-DEBT-*`).
 - [ ] Implement dashboard endpoint (`SCR-DSH-01`).
 - [ ] Implement reports endpoints (`SCR-RPT-*`).
 
@@ -220,8 +243,8 @@ Acceptance criteria:
 2. Onboarding complete flow
 3. Merchant settings
 4. Suppliers + ingredients
-5. Purchase orders + stock writes
-6. Cash + debts
+5. Stock write endpoints
+6. Cash + debts endpoints
 7. Dashboard + reports
 8. Forgot/reset password
 

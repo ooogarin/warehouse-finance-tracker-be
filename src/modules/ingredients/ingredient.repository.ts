@@ -59,6 +59,34 @@ export const getOneByIdAndMerchantId = async (ingredientId: string, merchantId: 
   return result ?? null;
 };
 
+// Lock one ingredient row by ID and merchant for stock mutation
+export const getOneByIdAndMerchantIdForUpdate = async (
+  db: ReservedSQL,
+  ingredientId: string,
+  merchantId: string,
+): Promise<IngredientRow | null> => {
+  const [result] = await db<IngredientRow[]>`
+    SELECT
+      id,
+      merchant_id,
+      name,
+      category,
+      base_unit,
+      stock_quantity::double precision AS stock_quantity,
+      min_stock::double precision AS min_stock,
+      is_active,
+      created_at,
+      updated_at
+    FROM ingredients
+    WHERE id = ${ingredientId}
+      AND merchant_id = ${merchantId}
+    LIMIT 1
+    FOR UPDATE
+  `;
+
+  return result ?? null;
+};
+
 // Insert one ingredient
 export const insert = async (db: ReservedSQL, payload: IngredientInsertPayload): Promise<IngredientRow> => {
   const allowedColumns = ['id', 'merchant_id', 'name', 'category', 'base_unit', 'min_stock'] as const;
@@ -115,6 +143,43 @@ export const updateByIdAndMerchantId = async (
   `;
 
   return result ?? null;
+};
+
+// Increase ingredient stock quantity and return latest balance
+export const increaseStockQuantityById = async (db: ReservedSQL, ingredientId: string, quantity: number): Promise<number> => {
+  const [result] = await db<{ stock_quantity: number }[]>`
+    UPDATE ingredients
+    SET
+      stock_quantity = stock_quantity + ${quantity},
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${ingredientId}
+    RETURNING stock_quantity::double precision AS stock_quantity
+  `;
+
+  if (!result) {
+    throw new Error('Ingredient stock update failed');
+  }
+
+  return result.stock_quantity;
+};
+
+// Decrease ingredient stock quantity and return latest balance
+export const decreaseStockQuantityById = async (db: ReservedSQL, ingredientId: string, quantity: number): Promise<number> => {
+  const [result] = await db<{ stock_quantity: number }[]>`
+    UPDATE ingredients
+    SET
+      stock_quantity = stock_quantity - ${quantity},
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${ingredientId}
+      AND stock_quantity >= ${quantity}
+    RETURNING stock_quantity::double precision AS stock_quantity
+  `;
+
+  if (!result) {
+    throw new Error('Ingredient stock update failed');
+  }
+
+  return result.stock_quantity;
 };
 
 // Delete ingredient by ID and merchant

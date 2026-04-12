@@ -41,7 +41,7 @@ src/
     suppliers/
     ingredients/
     purchase-orders/
-    stock/
+    inventory/
     cash/
     debts/
 
@@ -161,7 +161,7 @@ modules/ingredients/
   ingredient.repository.ts
   ingredient.schema.ts
   ingredient.type.ts
-  ingredient-unit/
+  ingredient-units/
     ingredient-unit.controller.ts
     ingredient-unit.service.ts
     ingredient-unit.repository.ts
@@ -170,6 +170,42 @@ modules/ingredients/
 ```
 
 Do not create sub-modules too early for trivial CRUD behavior.
+
+Use the same pattern for subordinate entities under another aggregate root:
+
+```text
+modules/purchase-orders/
+  purchase-order.route.ts
+  purchase-order.controller.ts
+  purchase-order.service.ts
+  purchase-order.repository.ts
+  purchase-order.schema.ts
+  purchase-order.type.ts
+  purchase-order-items/
+    purchase-order-item.repository.ts
+    purchase-order-item.type.ts
+```
+
+```text
+modules/debts/
+  debt.route.ts
+  debt.controller.ts
+  debt.service.ts
+  debt.repository.ts
+  debt.schema.ts
+  debt.type.ts
+  debt-payments/
+    debt-payment.repository.ts
+    debt-payment.type.ts
+```
+
+For this codebase, the practical rule is:
+
+- module root = business capability
+- child folder = subordinate table or subordinate operation
+- service = orchestration layer
+- repository = one owned table or one tightly-coupled persistence operation
+- type file = contracts for that owned table or operation
 
 ## File Naming Rules
 

@@ -28,7 +28,7 @@ The current module boundaries are:
 - `suppliers`
 - `ingredients`
 - `purchase-orders`
-- `stock`
+- `inventory`
 - `cash`
 - `debts`
 
@@ -115,13 +115,18 @@ Owns ingredient master data and ingredient unit data, including:
 Owns purchase-order recording and purchase-order read flows, including:
 
 - Purchase order writes
-- Purchase order item writes
 - Payment split recording
 - Purchase history reads
 
-This module coordinates with stock, cash, and debts during write workflows, but it does not own those domains.
+This module owns `purchase_orders` as the aggregate root.
 
-### `stock`
+`purchase_order_items` is a child entity under this module and should live in a subfolder such as:
+
+- `modules/purchase-orders/purchase-order-items/`
+
+This module coordinates with inventory, cash, and debts during write workflows, but it does not own those domains.
+
+### `inventory`
 
 Owns inventory movement and inventory history behavior, including:
 
@@ -158,12 +163,21 @@ Use these rules when deciding where code belongs:
 2. Ownership follows the underlying data being changed.
 3. A module may coordinate another module's repository data in a transaction, but that does not transfer ownership.
 4. Settings screens do not automatically require a separate backend module.
+5. One repository and one type file should own one table or one tightly-coupled operation.
+6. Child tables or subordinate entities should use subfolders under the owning module.
+
+Examples of the child-entity rule:
+
+- `modules/ingredients/ingredient-units/`
+- `modules/purchase-orders/purchase-order-items/`
+- `modules/debts/debt-payments/`
 
 Examples:
 
 - Account settings stay in `auth` because they update `users`.
 - Merchant settings stay in `merchants` because they update `merchants`.
 - Purchase-order side effects may write cash and debt records, but cash logic still belongs to `cash` and debt logic still belongs to `debts`.
+- A service may orchestrate multiple repositories in one transaction, but repositories must not become workflow coordinators.
 
 ## Dependency Direction
 
@@ -198,12 +212,19 @@ Create a sub-module only when one of these is true:
 
 Do not create sub-modules too early for trivial CRUD behavior.
 
+When a child entity is clearly subordinate to one aggregate root, keep the root files in the module root and place the child under a subfolder.
+
+Example:
+
+- `purchase-orders/purchase-order.repository.ts`
+- `purchase-orders/purchase-order-items/purchase-order-item.repository.ts`
+
 ## Summary
 
 The module boundaries are designed to keep ownership explicit:
 
 - `auth` owns account-level user behavior
 - `merchants` owns merchant-level data and access
-- `suppliers`, `ingredients`, `purchase-orders`, `stock`, `cash`, and `debts` own their respective operational domains
+- `suppliers`, `ingredients`, `purchase-orders`, `inventory`, `cash`, and `debts` own their respective operational domains
 
 When in doubt, choose the module that owns the business rule and underlying persisted data.

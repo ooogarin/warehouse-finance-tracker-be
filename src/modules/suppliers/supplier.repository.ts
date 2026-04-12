@@ -65,10 +65,7 @@ export const getOneByIdAndMerchantId = async (supplierId: string, merchantId: st
 };
 
 // Get purchase history by supplier ID and merchant
-export const getPurchaseHistoryBySupplierId = async (
-  supplierId: string,
-  merchantId: string,
-): Promise<SupplierPurchaseHistoryRow[]> => {
+export const getPurchaseHistoryBySupplierId = async (supplierId: string, merchantId: string): Promise<SupplierPurchaseHistoryRow[]> => {
   return await sql<SupplierPurchaseHistoryRow[]>`
     SELECT
       po.id,

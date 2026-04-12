@@ -1,5 +1,5 @@
-import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
+import { appValidator } from '@/core/http/validator';
 import { authenticate } from '@/core/middleware/auth.middleware';
 import * as authController from './auth.controller';
 import { changePasswordSchema, updateProfileSchema } from './auth.schema';
@@ -14,9 +14,9 @@ authRoutesV1.use('*', authenticate);
 authRoutesV1.get('/me', authController.getMe);
 
 // PUT /v1/auth/profile - Update user profile
-authRoutesV1.put('/profile', zValidator('json', updateProfileSchema), authController.updateProfile);
+authRoutesV1.put('/profile', appValidator('json', updateProfileSchema), authController.updateProfile);
 
 // PUT /v1/auth/password - Change password
-authRoutesV1.put('/password', zValidator('json', changePasswordSchema), authController.changePassword);
+authRoutesV1.put('/password', appValidator('json', changePasswordSchema), authController.changePassword);
 
 export { authRoutesV1 };

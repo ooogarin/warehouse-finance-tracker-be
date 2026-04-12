@@ -97,56 +97,56 @@ Notes:
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/purchase-orders` | `GET /v1/purchase-orders` | PLANNED |
-| `/purchase-orders/new` | `POST /v1/purchase-orders` | PLANNED |
-| `/purchase-orders/[id]` | `GET /v1/purchase-orders/:id` | PLANNED |
+| `/purchase-orders` | `GET /v1/purchase-orders` | IMPLEMENTED |
+| `/purchase-orders/new` | `POST /v1/purchase-orders` | IMPLEMENTED |
+| `/purchase-orders/[id]` | `GET /v1/purchase-orders/:id` | IMPLEMENTED |
 
 ### `SCREEN_LIST_06_01_STOCK_MONITORING.md`
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/stock` | `GET /v1/stock` | PLANNED |
-| `/stock/[ingredient_id]` | `GET /v1/stock/:ingredientId` | PLANNED |
-| Stock movement history | `GET /v1/stock/:ingredientId/logs` | PLANNED |
+| `/stock` | `GET /v1/stock` | IMPLEMENTED |
+| `/stock/[ingredient_id]` | `GET /v1/stock/:ingredientId` | IMPLEMENTED |
+| Stock movement history | `GET /v1/stock/:ingredientId/logs` | IMPLEMENTED |
 
 ### `SCREEN_LIST_06_02_STOCK_USAGE.md`
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/stock/usage` | `GET /v1/stock/usages` | PLANNED |
-| `/stock/usage/new` | `POST /v1/stock/usages` | PLANNED |
-| `/stock/usage/[id]` | `GET /v1/stock/usages/:id` | PLANNED |
+| `/stock/usage` | `GET /v1/stock/usages` | IMPLEMENTED |
+| `/stock/usage/new` | `POST /v1/stock/usages`, `POST /v1/stock/usages/estimate` | IMPLEMENTED |
+| `/stock/usage/[id]` | `GET /v1/stock/usages/:id` | IMPLEMENTED |
 
 ### `SCREEN_LIST_06_03_STOCK_WASTE.md`
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/stock/waste` | `GET /v1/stock/wastes` | PLANNED |
-| `/stock/waste/new` | `POST /v1/stock/wastes` | PLANNED |
-| `/stock/waste/[id]` | `GET /v1/stock/wastes/:id` | PLANNED |
+| `/stock/waste` | `GET /v1/stock/wastes` | IMPLEMENTED |
+| `/stock/waste/new` | `POST /v1/stock/wastes`, `POST /v1/stock/wastes/estimate` | IMPLEMENTED |
+| `/stock/waste/[id]` | `GET /v1/stock/wastes/:id` | IMPLEMENTED |
 
 ### `SCREEN_LIST_06_04_STOCK_ADJUSTMENT.md`
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/stock/adjustment` | `GET /v1/stock/adjustments` | PLANNED |
-| `/stock/adjustment/new` | `POST /v1/stock/adjustments` | PLANNED |
-| `/stock/adjustment/[id]` | `GET /v1/stock/adjustments/:id` | PLANNED |
+| `/stock/adjustment` | `GET /v1/stock/adjustments` | IMPLEMENTED |
+| `/stock/adjustment/new` | `POST /v1/stock/adjustments`, `POST /v1/stock/adjustments/estimate-out` | IMPLEMENTED |
+| `/stock/adjustment/[id]` | `GET /v1/stock/adjustments/:id` | IMPLEMENTED |
 
 ### `SCREEN_LIST_07_CASH_MANAGEMENT.md`
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/cash` | `GET /v1/cash/logs`, `POST /v1/cash/logs` | PLANNED |
-| `/cash/[id]` | `GET /v1/cash/logs/:id` | PLANNED |
+| `/cash` | `GET /v1/cash`, `POST /v1/cash/in`, `POST /v1/cash/out` | IMPLEMENTED |
+| `/cash/[id]` | `GET /v1/cash/:id` | IMPLEMENTED |
 
 ### `SCREEN_LIST_08_DEBT_MANAGEMENT.md`
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/debt` | `GET /v1/debts`, `POST /v1/debts` | PLANNED |
-| `/debt/[id]` | `GET /v1/debts/:id` | PLANNED |
-| Debt payment action | `POST /v1/debts/:id/payments` | PLANNED |
+| `/debt` | `GET /v1/debts`, `POST /v1/debts` | IMPLEMENTED |
+| `/debt/[id]` | `GET /v1/debts/:id` | IMPLEMENTED |
+| Debt payment action | `POST /v1/debts/:id/payments` | IMPLEMENTED |
 
 ### `SCREEN_LIST_09_DASHBOARD.md`
 

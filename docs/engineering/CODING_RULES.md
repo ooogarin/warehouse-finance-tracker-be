@@ -27,6 +27,8 @@ For engineering structure and ownership, this document should stay aligned with:
 - Prefer explicit behavior over clever abstractions.
 - Prefer readability over premature indirection.
 - Do not move business logic into controllers, middleware, or repositories.
+- Keep module ownership easy to locate.
+- Keep runtime concerns separate from domain logic.
 
 ## Layer Discipline
 
@@ -99,6 +101,13 @@ Repositories must not:
 
 ## Naming Rules
 
+Module structure rule:
+
+- Module root represents a business capability.
+- Child entities or subordinate operations should use subfolders under the owning module.
+- One `repository` file and one `type` file should focus on one owned table or one tightly-coupled persistence operation.
+- Services may orchestrate multiple repositories, but repositories must not become workflow coordinators.
+
 Use singular file suffixes consistently:
 
 - `*.route.ts`
@@ -119,6 +128,12 @@ Examples:
 - `modules/merchants/merchant.service.ts`
 - `modules/suppliers/supplier.repository.ts`
 - `modules/ingredients/ingredient.schema.ts`
+
+Child-entity examples:
+
+- `modules/ingredients/ingredient-units/ingredient-unit.repository.ts`
+- `modules/purchase-orders/purchase-order-items/purchase-order-item.repository.ts`
+- `modules/debts/debt-payments/debt-payment.repository.ts`
 
 ### Type Naming Rule
 
@@ -153,6 +168,15 @@ Typical signs that a split is justified:
 
 Do not split files or modules too early for trivial CRUD behavior.
 
+When one aggregate root has a clear child entity, keep the aggregate root files in the module root and place the child entity in a subfolder.
+
+Examples:
+
+- `purchase-orders/purchase-order.repository.ts`
+- `purchase-orders/purchase-order-items/purchase-order-item.repository.ts`
+- `debts/debt.repository.ts`
+- `debts/debt-payments/debt-payment.repository.ts`
+
 ## Shared Code Rule
 
 Before adding something to `shared/`, ask:
@@ -185,6 +209,8 @@ Repository contract:
 - Use concise method names for standard non-transactional reads.
 - Use explicit transactional variants only when the read must run on the same transaction connection.
 - Make write methods accept the DB executor explicitly.
+- Keep repository ownership explicit.
+- Do not mix writes for unrelated owned tables in one repository.
 
 Examples of intended patterns:
 

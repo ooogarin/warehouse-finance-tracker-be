@@ -2,13 +2,20 @@ import { successResponse } from '@/core/http/response';
 import { getBody, getParam, getQuery } from '@/shared/utils/hono.util';
 import * as supplierService from './supplier.service';
 import type { AppContext } from '@/shared/types/context.types';
-import type { CreateSupplierRequest, GetSupplierRequest, ListSuppliersRequest, UpdateSupplierRequest } from './supplier.type';
+import type {
+  CreateSupplierRequest,
+  GetSupplierParams,
+  GetSupplierRequest,
+  ListSuppliersQuery,
+  ListSuppliersRequest,
+  UpdateSupplierRequest,
+} from './supplier.type';
 
 // List suppliers
 // GET /v1/suppliers
 export const list = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const query = getQuery<{ search?: string }>(c);
+  const query = getQuery<ListSuppliersQuery>(c);
 
   const request: ListSuppliersRequest = {
     merchantId,
@@ -28,7 +35,7 @@ export const list = async (c: AppContext) => {
 // GET /v1/suppliers/:id
 export const getDetail = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const params = getParam<{ id: string }>(c);
+  const params = getParam<GetSupplierParams>(c);
 
   const request: GetSupplierRequest = {
     merchantId,
@@ -64,7 +71,7 @@ export const create = async (c: AppContext) => {
 // PATCH /v1/suppliers/:id
 export const update = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const params = getParam<{ id: string }>(c);
+  const params = getParam<GetSupplierParams>(c);
   const data = getBody<UpdateSupplierRequest>(c);
 
   const request: GetSupplierRequest = {
@@ -85,7 +92,7 @@ export const update = async (c: AppContext) => {
 // DELETE /v1/suppliers/:id
 export const archive = async (c: AppContext) => {
   const merchantId = c.get('merchantId');
-  const params = getParam<{ id: string }>(c);
+  const params = getParam<GetSupplierParams>(c);
 
   const request: GetSupplierRequest = {
     merchantId,

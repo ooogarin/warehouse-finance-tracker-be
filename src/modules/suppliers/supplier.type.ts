@@ -1,3 +1,54 @@
+import type { z } from 'zod';
+import type { createSupplierSchema, supplierListQuerySchema, supplierParamsSchema, updateSupplierSchema } from './supplier.schema';
+
+// ----------------------------------------------------------------------------------------------------
+// Request contracts
+// ----------------------------------------------------------------------------------------------------
+
+export type ListSuppliersQuery = z.infer<typeof supplierListQuerySchema>;
+
+export type GetSupplierParams = z.infer<typeof supplierParamsSchema>;
+
+export type CreateSupplierRequest = z.infer<typeof createSupplierSchema>;
+
+export type UpdateSupplierRequest = z.infer<typeof updateSupplierSchema>;
+
+export type ListSuppliersRequest = ListSuppliersQuery & {
+  merchantId: string;
+};
+
+export type GetSupplierRequest = {
+  merchantId: string;
+  supplierId: string;
+};
+
+// ----------------------------------------------------------------------------------------------------
+// Service operations
+// ----------------------------------------------------------------------------------------------------
+
+export type SupplierMap = {
+  id: string;
+  name: string;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+  last_order_date: string | null;
+  created_at: string;
+};
+
+export type SupplierPurchaseHistoryMap = {
+  id: string;
+  purchase_date: string;
+  invoice_number: string;
+  total_amount: string;
+  payment_status: 'Lunas' | 'Belum Lunas';
+};
+
+export type SupplierDetailMap = {
+  supplier: SupplierMap;
+  purchase_orders: SupplierPurchaseHistoryMap[];
+};
+
 // ----------------------------------------------------------------------------------------------------
 // Repository payloads
 // ----------------------------------------------------------------------------------------------------
@@ -45,58 +96,3 @@ export interface SupplierPurchaseHistoryRow {
   total_amount: string;
   debt_amount: string;
 }
-
-// ----------------------------------------------------------------------------------------------------
-// Request contracts
-// ----------------------------------------------------------------------------------------------------
-
-export type ListSuppliersRequest = {
-  merchantId: string;
-  search?: string;
-};
-
-export type GetSupplierRequest = {
-  merchantId: string;
-  supplierId: string;
-};
-
-export type CreateSupplierRequest = {
-  name: string;
-  phone?: string;
-  address?: string;
-  notes?: string;
-};
-
-export type UpdateSupplierRequest = {
-  name?: string;
-  phone?: string;
-  address?: string;
-  notes?: string;
-};
-
-// ----------------------------------------------------------------------------------------------------
-// Service operations
-// ----------------------------------------------------------------------------------------------------
-
-export type SupplierMap = {
-  id: string;
-  name: string;
-  phone: string | null;
-  address: string | null;
-  notes: string | null;
-  last_order_date: string | null;
-  created_at: string;
-};
-
-export type SupplierPurchaseHistoryMap = {
-  id: string;
-  purchase_date: string;
-  invoice_number: string;
-  total_amount: string;
-  payment_status: 'Lunas' | 'Belum Lunas';
-};
-
-export type SupplierDetailMap = {
-  supplier: SupplierMap;
-  purchase_orders: SupplierPurchaseHistoryMap[];
-};
