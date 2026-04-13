@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
+import { appValidator } from '@/core/http/validator';
 import { authenticate } from '@/core/middleware/auth.middleware';
 import * as merchantController from './merchant.controller';
 import { resolveMerchantContext } from './merchant.middleware';
+import { updateCurrentMerchantSchema } from './merchant.schema';
 import type { AppEnv } from '@/shared/types/context.types';
 
 const merchantRoutesV1 = new Hono<AppEnv>();
@@ -14,5 +16,13 @@ merchantRoutesV1.get('/', merchantController.listAccessible);
 
 // GET /v1/merchants/current - Get current merchant
 merchantRoutesV1.get('/current', resolveMerchantContext, merchantController.getCurrent);
+
+// PATCH /v1/merchants/current - Update current merchant
+merchantRoutesV1.patch(
+  '/current',
+  resolveMerchantContext,
+  appValidator('json', updateCurrentMerchantSchema),
+  merchantController.updateCurrent,
+);
 
 export { merchantRoutesV1 };

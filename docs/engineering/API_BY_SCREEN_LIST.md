@@ -152,15 +152,15 @@ Notes:
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/dashboard` | `GET /v1/dashboard` | PLANNED |
+| `/dashboard` | `GET /v1/dashboard` | IMPLEMENTED |
 
 ### `SCREEN_LIST_10_REPORTS.md`
 
 | Frontend Route | Backend API | Status |
 |---|---|---|
-| `/reports/financial` | `GET /v1/reports/financial` | PLANNED |
-| `/reports/stock` | `GET /v1/reports/stock` | PLANNED |
-| `/reports/supplier` | `GET /v1/reports/suppliers` | PLANNED |
+| `/reports/financial` | `GET /v1/reports/financial` | IMPLEMENTED |
+| `/reports/stock` | `GET /v1/reports/stock` | IMPLEMENTED |
+| `/reports/supplier` | `GET /v1/reports/suppliers` | IMPLEMENTED |
 | Export action | `GET /v1/reports/*/export` | PLANNED |
 
 ### `SCREEN_LIST_11_SETTINGS.md`
@@ -169,7 +169,7 @@ Notes:
 |---|---|---|
 | `/settings/account` | `GET /v1/auth/me`, `PUT /v1/auth/profile`, `PUT /v1/auth/password` | IMPLEMENTED |
 | `/settings/merchant` | `GET /v1/merchants/current` | IMPLEMENTED |
-| `/settings/merchant` | `PATCH /v1/merchants/current` | PLANNED |
+| `/settings/merchant` | `PATCH /v1/merchants/current` | IMPLEMENTED |
 | Shared merchant selector context | `GET /v1/merchants` | IMPLEMENTED |
 
 ## Current Route Inventory (From Code)

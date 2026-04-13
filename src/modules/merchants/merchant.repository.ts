@@ -1,6 +1,12 @@
 import { sql } from '@/core/db/client';
 import type { ReservedSQL } from '@/core/db/client';
-import type { MerchantAccessRow, MerchantInsertPayload, UserMerchantInsertPayload, UserMerchantRow } from './merchant.type';
+import type {
+  MerchantAccessRow,
+  MerchantInsertPayload,
+  MerchantUpdatePayload,
+  UserMerchantInsertPayload,
+  UserMerchantRow,
+} from './merchant.type';
 
 // Get all merchants accessible by user
 export const getAllAccessibleByUserId = async (userId: string): Promise<MerchantAccessRow[]> => {
@@ -72,6 +78,41 @@ export const insertMerchant = async (db: ReservedSQL, payload: MerchantInsertPay
   await db`
     INSERT INTO merchants ${sql(payload, ...allowedColumns)}
   `;
+};
+
+// Update one accessible merchant by merchant ID and user ID
+export const updateAccessibleByIdAndUserId = async (
+  db: ReservedSQL,
+  merchantId: string,
+  userId: string,
+  payload: MerchantUpdatePayload,
+): Promise<MerchantAccessRow | null> => {
+  const allowedColumns = ['name', 'type', 'address', 'phone'] as const;
+
+  const [result] = await db<MerchantAccessRow[]>`
+    UPDATE merchants m
+    SET
+      ${sql(payload, ...allowedColumns)},
+      updated_at = CURRENT_TIMESTAMP
+    FROM user_merchants um
+    JOIN users u ON u.id = um.user_id
+    WHERE m.id = ${merchantId}
+      AND um.merchant_id = m.id
+      AND um.user_id = ${userId}
+      AND um.deleted_at IS NULL
+      AND m.deleted_at IS NULL
+      AND u.deleted_at IS NULL
+    RETURNING
+      m.id,
+      m.name,
+      m.type,
+      m.address,
+      m.phone,
+      m.cash_balance,
+      u.role AS user_role
+  `;
+
+  return result ?? null;
 };
 
 // Insert user_merchant record
