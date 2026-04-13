@@ -12,12 +12,14 @@ import { requestIdMiddleware } from '@/core/middleware/request-id.middleware';
 import { authRoutes } from '@/modules/auth/auth.route';
 import { authRoutesV1 } from '@/modules/auth/auth-v1.route';
 import { cashRoutesV1 } from '@/modules/cash/cash-v1.route';
+import { dashboardRoutesV1 } from '@/modules/dashboard/dashboard-v1.route';
 import { debtRoutesV1 } from '@/modules/debts/debt-v1.route';
 import { ingredientRoutesV1 } from '@/modules/ingredients/ingredient-v1.route';
 import { stockRoutesV1 } from '@/modules/inventory/stock-v1.route';
 import { merchantRoutesV1 } from '@/modules/merchants/merchant-v1.route';
 import { onboardingRoutesV1 } from '@/modules/onboarding/onboarding-v1.route';
 import { purchaseOrderRoutesV1 } from '@/modules/purchase-orders/purchase-order-v1.route';
+import { reportRoutesV1 } from '@/modules/reports/report-v1.route';
 import { supplierRoutesV1 } from '@/modules/suppliers/supplier-v1.route';
 import type { AppEnv } from '@/shared/types/context.types';
 
@@ -97,6 +99,8 @@ const createApp = () => {
   app.route('/v1/stock', stockRoutesV1);
   app.route('/v1/cash', cashRoutesV1);
   app.route('/v1/debts', debtRoutesV1);
+  app.route('/v1/dashboard', dashboardRoutesV1);
+  app.route('/v1/reports', reportRoutesV1);
 
   // Internal routes (health, metrics)
   // app.route('/internal', internalRoutes);

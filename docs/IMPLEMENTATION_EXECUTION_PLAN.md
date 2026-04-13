@@ -35,6 +35,7 @@ Current backend code snapshot used for this audit:
 - Merchants:
   - `GET /v1/merchants`
   - `GET /v1/merchants/current`
+  - `PATCH /v1/merchants/current`
 - Suppliers:
   - `GET /v1/suppliers`
   - `POST /v1/suppliers`
@@ -80,6 +81,8 @@ Current backend code snapshot used for this audit:
   - `POST /v1/debts`
   - `GET /v1/debts/:id`
   - `POST /v1/debts/:id/payments`
+- Dashboard:
+  - `GET /v1/dashboard`
 - Core runtime:
   - Global error handling
   - JWT auth middleware
@@ -89,8 +92,7 @@ Current backend code snapshot used for this audit:
 
 ### What Is Not Implemented Yet (API Layer)
 
-- Merchant settings endpoints
-- Dashboard and reports endpoints
+- Reports export endpoints
 - Forgot-password and reset-password public flow
 
 ## Screen-List Coverage Matrix
@@ -114,22 +116,19 @@ Status legend:
 | `SCREEN_LIST_06_04_STOCK_ADJUSTMENT.md` | DONE | Stock adjustment list/create/detail and FIFO out estimate endpoints are implemented. Create flow supports mixed in/out items, writes adjustment header/items, updates ingredient batches and stock quantity, and writes stock logs in one transaction. |
 | `SCREEN_LIST_07_CASH_MANAGEMENT.md` | DONE | Cash list/detail plus manual cash-in and cash-out endpoints are implemented. Cash balance and cash log writes are transaction-safe. |
 | `SCREEN_LIST_08_DEBT_MANAGEMENT.md` | DONE | Debt list/detail/create plus debt payment endpoint are implemented. Debt payment writes update debt state and create cash outflow in one transaction. |
-| `SCREEN_LIST_09_DASHBOARD.md` | NOT STARTED | No dashboard endpoint yet. |
-| `SCREEN_LIST_10_REPORTS.md` | NOT STARTED | No reports endpoints yet. |
-| `SCREEN_LIST_11_SETTINGS.md` | PARTIAL | Account profile/password is covered by auth v1. Merchant settings is not implemented. |
+| `SCREEN_LIST_09_DASHBOARD.md` | DONE | Dashboard aggregate endpoint is implemented. It returns cash summary, expense breakdown, stock alerts, top waste this month, and debt alerts in one merchant-scoped response. |
+| `SCREEN_LIST_10_REPORTS.md` | PARTIAL | Financial, stock, and supplier report endpoints are implemented. Export endpoints are still planned. |
+| `SCREEN_LIST_11_SETTINGS.md` | DONE | Account profile/password is covered by auth v1. Merchant settings read/update endpoints are implemented. |
 
 ## Gap Analysis (Highest Impact First)
 
-1. Merchant settings API is missing.
-   - Required by `SCR-SET-02`.
+1. Financial read/write endpoints are now implemented.
+   - Remaining financial scope is downstream reporting read models, not core cash/debt CRUD/payment flows.
 
-2. Financial read/write endpoints are now implemented.
-   - Remaining financial scope is downstream reporting/dashboard read models, not core cash/debt CRUD/payment flows.
+2. Report export endpoints are missing.
+   - Report read-model endpoints are implemented for financial, stock, and suppliers.
 
-3. Read-model endpoints are missing.
-   - Dashboard and reports depend on operational modules and aggregation queries.
-
-4. Ingredient lifecycle completeness is still partial.
+3. Ingredient lifecycle completeness is still partial.
    - Advanced rules for detail/edit are covered.
    - Delete/archive flow and downstream operational integrations are not fully complete.
 
@@ -181,7 +180,7 @@ Acceptance criteria:
 
 ### Phase 3 — Settings Completion
 
-- [ ] Add merchant settings endpoints (`SCR-SET-02`):
+- [x] Add merchant settings endpoints (`SCR-SET-02`):
   - read current merchant info
   - update merchant info.
 - [ ] Keep account settings under auth module (`SCR-SET-01`).
@@ -218,12 +217,13 @@ Acceptance criteria:
 
 - [x] Implement cash management endpoints (`SCR-CSH-*`).
 - [x] Implement debt management endpoints (`SCR-DEBT-*`).
-- [ ] Implement dashboard endpoint (`SCR-DSH-01`).
-- [ ] Implement reports endpoints (`SCR-RPT-*`).
+- [x] Implement dashboard endpoint (`SCR-DSH-01`).
+- [x] Implement reports endpoints (`SCR-RPT-*`).
+- [ ] Implement reports export endpoints.
 
 Acceptance criteria:
 
-- Dashboard and reports queries return merchant-scoped data only.
+- Reports queries return merchant-scoped data only.
 - Performance is acceptable for expected dataset size.
 
 ### Phase 7 — Auth Completion (Public Reset Flow)
@@ -245,7 +245,7 @@ Acceptance criteria:
 4. Suppliers + ingredients
 5. Stock write endpoints
 6. Cash + debts endpoints
-7. Dashboard + reports
+7. Reports export
 8. Forgot/reset password
 
 ## Notes
