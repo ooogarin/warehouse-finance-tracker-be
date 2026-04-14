@@ -44,9 +44,9 @@ export const complete = async ({ userId }: GetOnboardingStatusRequest, data: Com
       id: generateUUID(),
       merchant_id: merchantId,
       name: supplier.name,
-      phone: supplier.phone ?? null,
-      address: supplier.address ?? null,
-      notes: supplier.notes ?? null,
+      phone: supplier.phone,
+      address: supplier.address,
+      notes: supplier.notes,
     }));
 
     connection = await startTransaction();
@@ -55,8 +55,8 @@ export const complete = async ({ userId }: GetOnboardingStatusRequest, data: Com
       id: merchantId,
       name: data.merchant.name,
       type: data.merchant.type,
-      address: data.merchant.address ?? null,
-      phone: data.merchant.phone ?? null,
+      address: data.merchant.address,
+      phone: data.merchant.phone,
       cash_balance: openingBalance,
     });
 

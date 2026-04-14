@@ -39,7 +39,7 @@ export const create = async (
       unit_name: data.unit_name,
       conversion_factor: data.conversion_factor,
       is_default: data.is_default ?? false,
-      description: data.description ?? null,
+      description: data.description,
       is_active: true,
     });
 

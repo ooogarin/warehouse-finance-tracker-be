@@ -63,9 +63,9 @@ export const create = async (merchantId: string, data: CreateSupplierRequest): P
       id: generateUUID(),
       merchant_id: merchantId,
       name: data.name,
-      phone: data.phone ?? null,
-      address: data.address ?? null,
-      notes: data.notes ?? null,
+      phone: data.phone,
+      address: data.address,
+      notes: data.notes,
     });
 
     await commitTransaction(connection);
@@ -91,9 +91,9 @@ export const update = async ({ merchantId, supplierId }: GetSupplierRequest, dat
 
     const updated = await supplierRepository.updateByIdAndMerchantId(connection, supplierId, merchantId, {
       name: data.name,
-      phone: data.phone ?? null,
-      address: data.address ?? null,
-      notes: data.notes ?? null,
+      phone: data.phone,
+      address: data.address,
+      notes: data.notes,
     });
 
     if (!updated) {
