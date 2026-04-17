@@ -72,8 +72,25 @@ export const getPurchaseHistoryBySupplierId = async (supplierId: string, merchan
       po.purchase_date::text AS purchase_date,
       po.invoice_number,
       po.total_amount::text AS total_amount,
-      po.debt_amount::text AS debt_amount
+      po.debt_amount::text AS debt_amount,
+      CASE
+        WHEN po.debt_amount = 0 THEN 'paid'
+        WHEN supplier_debt.status = 'paid' THEN 'paid'
+        WHEN COALESCE(supplier_debt.paid_amount, 0) > 0 THEN 'partial'
+        ELSE 'unpaid'
+      END AS payment_status
     FROM purchase_orders po
+    LEFT JOIN LATERAL (
+      SELECT
+        d.status,
+        d.paid_amount::double precision AS paid_amount
+      FROM debts d
+      WHERE d.purchase_order_id = po.id
+        AND d.creditor_type = 'supplier'
+        AND d.deleted_at IS NULL
+      ORDER BY d.created_at DESC
+      LIMIT 1
+    ) supplier_debt ON TRUE
     WHERE po.supplier_id = ${supplierId}
       AND po.merchant_id = ${merchantId}
       AND po.deleted_at IS NULL
@@ -82,7 +99,7 @@ export const getPurchaseHistoryBySupplierId = async (supplierId: string, merchan
 };
 
 // Insert suppliers in onboarding flow
-export const insertMany = async (db: ReservedSQL, payloads: SupplierInsertPayload[]): Promise<void> => {
+export const bulkInsert = async (db: ReservedSQL, payloads: SupplierInsertPayload[]): Promise<void> => {
   if (payloads.length === 0) {
     return;
   }

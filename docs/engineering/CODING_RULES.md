@@ -18,6 +18,7 @@ For engineering structure and ownership, this document should stay aligned with:
 - `docs/engineering/ARCHITECTURE_OVERVIEW.md`
 - `docs/engineering/MODULE_BOUNDARIES.md`
 - `docs/engineering/FOLDER_STRUCTURE.md`
+- `docs/engineering/PERFORMANCE_AND_QUALITY_RULES.md`
 - `docs/engineering/REQUEST_FLOW.md`
 
 ## General Rules

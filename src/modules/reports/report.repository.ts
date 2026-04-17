@@ -176,11 +176,8 @@ export const getStockUsageByType = async (
       i.id AS ingredient_id,
       i.name AS ingredient_name,
       i.category AS ingredient_category,
-      SUM(sui.quantity)::double precision AS total_quantity,
-      CASE
-        WHEN COUNT(DISTINCT iu.unit_name) = 1 THEN MAX(iu.unit_name)
-        ELSE 'mixed'
-      END AS unit_name,
+      i.base_unit,
+      SUM(sui.quantity * iu.conversion_factor)::double precision AS total_quantity,
       SUM(sui.subtotal)::double precision AS total_value
     FROM stock_usages su
     INNER JOIN stock_usage_items sui ON sui.stock_usage_id = su.id
@@ -193,7 +190,7 @@ export const getStockUsageByType = async (
       AND su.deleted_at IS NULL
       AND su.usage_date >= bounds.current_start
       AND su.usage_date < bounds.current_end
-    GROUP BY i.id, i.name, i.category
+    GROUP BY i.id, i.name, i.category, i.base_unit
     ORDER BY total_value DESC, i.name ASC
     LIMIT 10
   `;
@@ -270,7 +267,7 @@ export const getSupplierSummary = async (options: SupplierReportListOptions): Pr
     WITH bounds AS (${reportBoundsSql(options)})
     SELECT
       po.supplier_id,
-      COALESCE(s.name, 'Tanpa Supplier') AS supplier_name,
+      COALESCE(s.name, 'No Supplier') AS supplier_name,
       COUNT(po.id)::integer AS purchase_order_count,
       SUM(po.total_amount)::double precision AS total_spend,
       SUM(po.debt_amount)::double precision AS total_debt,

@@ -74,7 +74,7 @@ export const createManual = async (merchantId: string, data: CreateDebtRequest):
   let connection: ReservedSQL | null = null;
 
   try {
-    await validateCreditorReference(merchantId, data);
+    const creditorName = await resolveCreditorName(merchantId, data);
 
     connection = await startTransaction();
 
@@ -83,7 +83,7 @@ export const createManual = async (merchantId: string, data: CreateDebtRequest):
       id: debtId,
       merchant_id: merchantId,
       supplier_id: data.creditor_type === 'supplier' ? data.supplier_id : null,
-      creditor_name: data.creditor_type === 'other' ? data.creditor_name : null,
+      creditor_name: creditorName,
       creditor_type: data.creditor_type,
       purchase_order_id: null,
       total_amount: data.total_amount,
@@ -224,25 +224,17 @@ const toDebtMap = (debt: DebtRow): DebtMap => {
   };
 };
 
-const validateCreditorReference = async (merchantId: string, data: CreateDebtRequest): Promise<void> => {
-  if (data.creditor_type === 'supplier') {
-    if (!data.supplier_id) {
-      throw validationError('supplier_id is required when creditor_type is supplier');
-    }
-
+const resolveCreditorName = async (merchantId: string, data: CreateDebtRequest): Promise<string | null> => {
+  if (data.creditor_type === 'supplier' && data.supplier_id) {
     const supplier = await supplierRepository.getOneByIdAndMerchantId(data.supplier_id, merchantId);
     if (!supplier) {
       throw notFoundError('Supplier not found');
     }
+
+    return supplier.name;
   }
 
-  if (data.creditor_type === 'owner' && (data.supplier_id || data.creditor_name)) {
-    throw validationError('supplier_id and creditor_name must be empty when creditor_type is owner');
-  }
-
-  if (data.creditor_type === 'other' && !data.creditor_name) {
-    throw validationError('creditor_name is required when creditor_type is other');
-  }
+  return data.creditor_name ?? null;
 };
 
 const deriveDebtStatus = (paidAmount: number, totalAmount: number): DebtStatus => {
@@ -276,9 +268,5 @@ const getCreditorDisplayName = (debt: DebtRow): string => {
     return debt.supplier_name ?? 'supplier';
   }
 
-  if (debt.creditor_type === 'owner') {
-    return 'owner';
-  }
-
-  return debt.creditor_name ?? 'creditor';
+  return debt.creditor_name ?? debt.creditor_type;
 };

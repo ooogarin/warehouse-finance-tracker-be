@@ -17,23 +17,29 @@ export const debtListQuerySchema = z.object({
 export const createDebtSchema = z
   .object({
     creditor_type: creditorTypeSchema,
-    supplier_id: z.string().uuid('Supplier ID must be a valid UUID').optional(),
-    creditor_name: z.string().min(1, 'Creditor name is required').max(100, 'Creditor name must be at most 100 characters').optional(),
+    supplier_id: z.string().uuid('Supplier ID must be a valid UUID').nullable().optional(),
+    creditor_name: z
+      .string()
+      .trim()
+      .min(1, 'Creditor name is required')
+      .max(100, 'Creditor name must be at most 100 characters')
+      .nullable()
+      .optional(),
     total_amount: z.number().gt(0, 'Total amount must be greater than 0'),
     debt_date: z.string().date('debt_date must use YYYY-MM-DD format'),
     due_date: z.string().date('due_date must use YYYY-MM-DD format').optional(),
     description: z.string().max(2000, 'Description must be at most 2000 characters').optional(),
   })
-  .refine((data) => data.creditor_type !== 'supplier' || data.supplier_id !== undefined, {
+  .refine((data) => data.creditor_type !== 'supplier' || (data.supplier_id !== undefined && data.supplier_id !== null), {
     message: 'supplier_id is required when creditor_type is supplier',
     path: ['supplier_id'],
   })
-  .refine((data) => data.creditor_type !== 'owner' || (data.supplier_id === undefined && data.creditor_name === undefined), {
-    message: 'supplier_id and creditor_name must be empty when creditor_type is owner',
-    path: ['creditor_type'],
+  .refine((data) => data.creditor_type === 'supplier' || data.supplier_id === undefined || data.supplier_id === null, {
+    message: 'supplier_id must be empty when creditor_type is not supplier',
+    path: ['supplier_id'],
   })
-  .refine((data) => data.creditor_type !== 'other' || data.creditor_name !== undefined, {
-    message: 'creditor_name is required when creditor_type is other',
+  .refine((data) => data.creditor_type === 'supplier' || (data.creditor_name !== undefined && data.creditor_name !== null), {
+    message: 'creditor_name is required when creditor_type is not supplier',
     path: ['creditor_name'],
   })
   .refine(

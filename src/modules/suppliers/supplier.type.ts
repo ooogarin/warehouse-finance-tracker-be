@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import type { PurchaseOrderPaymentStatus } from '@/modules/purchase-orders/purchase-order.type';
 import type { createSupplierSchema, supplierListQuerySchema, supplierParamsSchema, updateSupplierSchema } from './supplier.schema';
 
 // ----------------------------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ export type SupplierPurchaseHistoryMap = {
   purchase_date: string;
   invoice_number: string;
   total_amount: string;
-  payment_status: 'Lunas' | 'Belum Lunas';
+  payment_status: PurchaseOrderPaymentStatus;
 };
 
 export type SupplierDetailMap = {
@@ -95,4 +96,5 @@ export interface SupplierPurchaseHistoryRow {
   invoice_number: string;
   total_amount: string;
   debt_amount: string;
+  payment_status: PurchaseOrderPaymentStatus;
 }

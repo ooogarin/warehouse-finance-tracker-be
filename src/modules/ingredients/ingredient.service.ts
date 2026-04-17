@@ -205,14 +205,7 @@ const toIngredientMap = (ingredient: IngredientRow): IngredientMap => {
   };
 };
 
-const toIngredientDetailUnitMap = (unit: {
-  id: string;
-  unit_name: string;
-  conversion_factor: number;
-  is_default: boolean;
-  description: string | null;
-  is_active: boolean;
-}): IngredientDetailUnitMap => {
+const toIngredientDetailUnitMap = (unit: IngredientDetailUnitMap): IngredientDetailUnitMap => {
   return {
     id: unit.id,
     unit_name: unit.unit_name,

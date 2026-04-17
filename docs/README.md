@@ -51,5 +51,6 @@ Recommended order for implementation work:
 - `docs/engineering/CODING_RULES.md`
 - `docs/engineering/FOLDER_STRUCTURE.md`
 - `docs/engineering/MODULE_BOUNDARIES.md`
+- `docs/engineering/PERFORMANCE_AND_QUALITY_RULES.md`
 - `docs/engineering/REQUEST_FLOW.md`
 - `docs/engineering/TESTING_STRATEGY.md`

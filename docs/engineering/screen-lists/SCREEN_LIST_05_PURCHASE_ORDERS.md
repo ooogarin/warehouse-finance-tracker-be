@@ -137,7 +137,7 @@ Data per card:
 | Label *"Tanpa Supplier"* | — | Jika `supplier_id` null |
 | No. Invoice | `purchase_orders.invoice_number` | Selalu |
 | Total | `purchase_orders.total_amount` | Selalu |
-| Status Bayar | derived: `debt_amount = 0` → badge *"Lunas"* (hijau) / `debt_amount > 0` AND ada pembayaran di `debt_payments` → badge *"Sebagian"* (kuning) / `debt_amount > 0` AND tidak ada pembayaran → badge *"Belum Lunas"* (merah) | Selalu |
+| Status Bayar | API value: `payment_status = paid / partial / unpaid`; UI label: *"Lunas"* (hijau) / *"Sebagian"* (kuning) / *"Belum Lunas"* (merah) | Selalu |
 
 Action per card:
 | Label | Trigger | Behaviour |
@@ -358,7 +358,7 @@ Tampil error: "Total pembayaran harus sama dengan total belanja"
 | Bayar dari Kas | `purchase_orders.paid_cash` |
 | Talangan Owner | `purchase_orders.paid_owner` — hanya tampil jika > 0 |
 | Hutang ke Supplier | `purchase_orders.debt_amount` — hanya tampil jika > 0 |
-| Status Bayar | derived dari `debts` terkait (Lunas / Sebagian / Belum Lunas) |
+| Status Bayar | API value `paid / partial / unpaid`, derived dari `debts` terkait |
 
 **Section: Riwayat Pembayaran Hutang**
 > Hanya tampil jika `debt_amount > 0`.
