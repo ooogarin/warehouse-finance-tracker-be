@@ -198,11 +198,12 @@ Hanya tampilkan kategori dengan nilai > 0.
 > Data dari `stock_usage_items` JOIN `stock_usages`
 > WHERE `type = 'waste'` AND periode.
 > Group by `ingredient_id`, sort SUM(`subtotal`) DESC, limit 10.
+> Qty dinormalisasi ke base unit ingredient: SUM(`stock_usage_items.quantity * ingredient_units.conversion_factor`).
 
 | Kolom | Source |
 |---|---|
 | Ingredient | `ingredients.name` |
-| Qty Waste | SUM(`quantity`) + unit default |
+| Qty Waste | `total_quantity` (base unit) + `total_quantity_display` (`formatted` + `base`) |
 | Nilai Waste | SUM(`subtotal`) |
 | % dari total waste | derived |
 
@@ -218,11 +219,12 @@ Hanya tampilkan kategori dengan nilai > 0.
 > Data dari `stock_usage_items` JOIN `stock_usages`
 > WHERE `type = 'usage'` AND periode.
 > Group by `ingredient_id`, sort SUM(`subtotal`) DESC.
+> Qty dinormalisasi ke base unit ingredient: SUM(`stock_usage_items.quantity * ingredient_units.conversion_factor`).
 
 | Kolom | Source |
 |---|---|
 | Ingredient | `ingredients.name` |
-| Qty Dipakai | SUM(`quantity`) + unit default |
+| Qty Dipakai | `total_quantity` (base unit) + `total_quantity_display` (`formatted` + `base`) |
 | Nilai COGS | SUM(`subtotal`) |
 
 **Footer:**

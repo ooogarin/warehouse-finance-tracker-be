@@ -172,7 +172,7 @@ Action per row:
 | Field | Source |
 |---|---|
 | Tanggal | `stock_logs.created_at` |
-| Tipe | derived dari `flow_type` + `reference_type` — *"Masuk (Pembelian)"* / *"Keluar (Penggunaan)"* / *"Keluar (Waste)"* / *"Masuk (Adjustment)"* / *"Keluar (Adjustment)"* |
+| Tipe | derived dari `flow_type` + `reference_type` — *"In (Purchase)"* / *"Out (Usage)"* / *"Out (Waste)"* / *"In (Adjustment)"* / *"Out (Adjustment)"* |
 | Qty | `stock_logs.base_unit_quantity` + base_unit |
 | Nilai | `stock_logs.total_amount` |
 | Saldo Setelah | `stock_logs.balance_after` + base_unit |
@@ -222,7 +222,7 @@ Filter riwayat:
 | DEV-01 | `stock_quantity` di list dan detail harus selalu real-time — tidak boleh di-cache terlalu lama |
 | DEV-02 | Nilai inventory per ingredient = SUM(`qty_remaining × cost_per_unit`) dari `ingredient_batches` WHERE `ingredient_id` AND `qty_remaining > 0` |
 | DEV-03 | Format human-readable stok dikalkulasi di BE — sort `ingredient_units` by `conversion_factor` DESC, iterasi dari unit terbesar, tampilkan hanya unit dengan qty > 0. Response kembalikan dua field: `stock_quantity_formatted` (contoh: *"2 jerigen 2 liter 500 ml"*) dan `stock_quantity_base` (contoh: *"12.500 ml"*) |
-| DEV-04 | Label tipe di riwayat pergerakan adalah derived dari kombinasi `flow_type` + `reference_type` — mapping: `in+purchase` = *"Masuk (Pembelian)"*, `out+usage` = *"Keluar (Penggunaan)"*, `out+waste` = *"Keluar (Waste)"*, `in+adjustment` = *"Masuk (Adjustment)"*, `out+adjustment` = *"Keluar (Adjustment)"* |
+| DEV-04 | Label tipe di riwayat pergerakan adalah derived dari kombinasi `flow_type` + `reference_type` — mapping: `in+purchase` = *"In (Purchase)"*, `out+usage` = *"Out (Usage)"*, `out+waste` = *"Out (Waste)"*, `in+adjustment` = *"In (Adjustment)"*, `out+adjustment` = *"Out (Adjustment)"* |
 | DEV-05 | Link referensi di riwayat pergerakan harus resolve ke route yang tepat berdasarkan `reference_type`: purchase → `/purchase-orders/[id]`, usage → `/stock/usage/[id]`, waste → `/stock/waste/[id]`, adjustment → `/stock/adjustment/[id]` |
 
 ---

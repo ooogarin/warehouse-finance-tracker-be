@@ -198,22 +198,22 @@ const formatNumber = (value: number): string => {
 
 const getMovementLabel = (log: StockLogRow): string => {
   if (log.flow_type === 'in' && log.reference_type === 'purchase') {
-    return 'Masuk (Pembelian)';
+    return 'In (Purchase)';
   }
 
   if (log.flow_type === 'out' && log.reference_type === 'usage') {
-    return 'Keluar (Penggunaan)';
+    return 'Out (Usage)';
   }
 
   if (log.flow_type === 'out' && log.reference_type === 'waste') {
-    return 'Keluar (Waste)';
+    return 'Out (Waste)';
   }
 
   if (log.reference_type === 'adjustment') {
-    return log.flow_type === 'in' ? 'Masuk (Adjustment)' : 'Keluar (Adjustment)';
+    return log.flow_type === 'in' ? 'In (Adjustment)' : 'Out (Adjustment)';
   }
 
-  return log.flow_type === 'in' ? 'Masuk' : 'Keluar';
+  return log.flow_type === 'in' ? 'In' : 'Out';
 };
 
 const getReferenceRoute = (referenceType: StockLogRow['reference_type'], referenceId: string | null): string | null => {

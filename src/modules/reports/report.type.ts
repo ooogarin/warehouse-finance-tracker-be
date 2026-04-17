@@ -95,9 +95,15 @@ export type StockReportUsageIngredientMap = {
   ingredient_id: string;
   ingredient_name: string;
   ingredient_category: IngredientCategory;
+  base_unit: string;
   total_quantity: number;
-  unit_name: string;
+  total_quantity_display: ReportQuantityDisplayMap;
   total_value: number;
+};
+
+export type ReportQuantityDisplayMap = {
+  formatted: string;
+  base: string;
 };
 
 export type StockReportMovementMap = {
@@ -236,7 +242,14 @@ export type FinancialReportTransactionRow = FinancialReportTransactionMap;
 
 export type StockReportSummaryRow = StockReportSummaryMap;
 
-export type StockReportUsageIngredientRow = StockReportUsageIngredientMap;
+export type StockReportUsageIngredientRow = {
+  ingredient_id: string;
+  ingredient_name: string;
+  ingredient_category: IngredientCategory;
+  base_unit: string;
+  total_quantity: number;
+  total_value: number;
+};
 
 export type StockReportMovementRow = StockReportMovementMap;
 
