@@ -99,7 +99,7 @@ export const getPurchaseHistoryBySupplierId = async (supplierId: string, merchan
 };
 
 // Insert suppliers in onboarding flow
-export const insertMany = async (db: ReservedSQL, payloads: SupplierInsertPayload[]): Promise<void> => {
+export const bulkInsert = async (db: ReservedSQL, payloads: SupplierInsertPayload[]): Promise<void> => {
   if (payloads.length === 0) {
     return;
   }

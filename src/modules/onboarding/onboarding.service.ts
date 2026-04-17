@@ -66,6 +66,8 @@ export const complete = async ({ userId }: GetOnboardingStatusRequest, data: Com
       merchant_id: merchantId,
     });
 
+    await supplierRepository.bulkInsert(connection, suppliersPayload);
+
     if (data.opening_balance > 0) {
       await cashService.recordOpeningBalanceInflow({
         db: connection,
@@ -77,8 +79,6 @@ export const complete = async ({ userId }: GetOnboardingStatusRequest, data: Com
         createdBy: userId,
       });
     }
-
-    await supplierRepository.insertMany(connection, suppliersPayload);
 
     await commitTransaction(connection);
 
