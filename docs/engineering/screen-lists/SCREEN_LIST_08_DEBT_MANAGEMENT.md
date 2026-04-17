@@ -25,7 +25,7 @@ debts
 ├── merchant_id       → terikat ke merchant aktif [AUTO]
 ├── creditor_type     → 'supplier' / 'owner' / 'other'
 ├── supplier_id       → nullable, wajib jika creditor_type = 'supplier'
-├── creditor_name     → nullable, wajib jika creditor_type = 'other'
+├── creditor_name     → snapshot nama kreditor; supplier diisi dari master supplier, wajib input jika owner/other
 ├── purchase_order_id → nullable, diisi [AUTO] jika dari PO
 ├── total_amount      → total hutang
 ├── paid_amount       → akumulasi dari debt_payments
@@ -63,8 +63,8 @@ due_date < today AND status IN ('unpaid', 'partial')
 
 **Aturan per creditor_type:**
 ```
-creditor_type = 'supplier' → supplier_id [R], creditor_name null
-creditor_type = 'owner'    → supplier_id null, creditor_name null
+creditor_type = 'supplier' → supplier_id [R], creditor_name [AUTO dari supplier.name]
+creditor_type = 'owner'    → supplier_id null, creditor_name [R]
 creditor_type = 'other'    → supplier_id null, creditor_name [R]
 ```
 
@@ -131,7 +131,7 @@ Urutan: `debt_date DESC` (terbaru dulu), hutang overdue diprioritaskan ke atas
 Data per card:
 | Field | Source | Tampil jika |
 |---|---|---|
-| Kreditor | `suppliers.name` / *"Owner"* / `debts.creditor_name` | Selalu |
+| Kreditor | `suppliers.name` / `debts.creditor_name` | Selalu |
 | Tipe | badge: *"Supplier"* / *"Owner"* / *"Lainnya"* dari `creditor_type` | Selalu |
 | Total Hutang | `debts.total_amount` | Selalu |
 | Sudah Dibayar | `debts.paid_amount` | Selalu |
@@ -171,7 +171,7 @@ Action per card:
 |---|---|---|---|
 | Tipe Kreditor | dropdown | `[R]` Supplier / Owner / Lainnya | `debts.creditor_type` |
 | Supplier | dropdown + search | `[R]` hanya jika `creditor_type = 'supplier'`, pilihan dari suppliers aktif | `debts.supplier_id` |
-| Nama Kreditor | text input | `[R]` hanya jika `creditor_type = 'other'` | `debts.creditor_name` |
+| Nama Kreditor | text input | `[R]` jika `creditor_type = 'owner'` atau `other`; `[AUTO]` dari supplier jika `supplier` | `debts.creditor_name` |
 | Total Hutang | number input | `[R]` > 0 | `debts.total_amount` |
 | Tanggal Hutang | date picker | `[R]` default hari ini | `debts.debt_date` |
 | Jatuh Tempo | date picker | `[O]` harus >= `debt_date` | `debts.due_date` |
@@ -208,7 +208,7 @@ Action per card:
 **Display: Info Hutang (read-only)**
 | Field | Source |
 |---|---|
-| Kreditor | `suppliers.name` / *"Owner"* / `debts.creditor_name` |
+| Kreditor | `suppliers.name` / `debts.creditor_name` |
 | Total Hutang | `debts.total_amount` |
 | Sudah Dibayar | `debts.paid_amount` |
 | Sisa Hutang | `total_amount - paid_amount` |
@@ -270,7 +270,7 @@ Saldo kas setelah:  Rp [balance - input]
 | Field | Source |
 |---|---|
 | Tipe Kreditor | `debts.creditor_type` — *"Supplier"* / *"Owner"* / *"Lainnya"* |
-| Kreditor | `suppliers.name` / *"Owner"* / `debts.creditor_name` |
+| Kreditor | `suppliers.name` / `debts.creditor_name` |
 | Total Hutang | `debts.total_amount` |
 | Sudah Dibayar | `debts.paid_amount` |
 | Sisa Hutang | `total_amount - paid_amount` |

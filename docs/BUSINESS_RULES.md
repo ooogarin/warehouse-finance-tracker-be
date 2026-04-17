@@ -94,9 +94,9 @@ Important exception:
 
 Creditor rules:
 
-- `supplier` requires `supplier_id`.
-- `owner` does not require `supplier_id`.
-- `other` requires `creditor_name`.
+- `supplier` requires `supplier_id`; `creditor_name` is stored from the supplier name as a debt snapshot.
+- `owner` requires `creditor_name` and must not use `supplier_id`.
+- `other` requires `creditor_name` and must not use `supplier_id`.
 
 Automatic debt creation from purchase orders:
 

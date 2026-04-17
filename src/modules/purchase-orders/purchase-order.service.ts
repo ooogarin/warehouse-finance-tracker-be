@@ -129,12 +129,15 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
       throw validationError('Supplier is required when debt_amount is greater than 0');
     }
 
+    let supplierName: string | null = null;
+
     // Supplier is optional for cash-only or owner-funded purchases, but must be valid when provided.
     if (data.supplier_id) {
       const supplier = await supplierRepository.getOneByIdAndMerchantId(data.supplier_id, merchantId);
       if (!supplier) {
         throw notFoundError('Supplier not found');
       }
+      supplierName = supplier.name;
     }
 
     const itemContexts = new Map<string, IngredientOperationalContext>();
@@ -238,7 +241,7 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
         id: generateUUID(),
         merchant_id: merchantId,
         supplier_id: null,
-        creditor_name: null,
+        creditor_name: 'Owner',
         creditor_type: 'owner',
         purchase_order_id: purchaseOrderId,
         total_amount: paid_owner,
@@ -253,7 +256,7 @@ export const create = async (merchantId: string, userId: string, data: CreatePur
         id: generateUUID(),
         merchant_id: merchantId,
         supplier_id: data.supplier_id,
-        creditor_name: null,
+        creditor_name: supplierName,
         creditor_type: 'supplier',
         purchase_order_id: purchaseOrderId,
         total_amount: debt_amount,
