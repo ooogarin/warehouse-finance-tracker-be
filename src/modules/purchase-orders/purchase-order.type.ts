@@ -25,7 +25,7 @@ export type GetPurchaseOrderRequest = {
 // Service operations
 // ----------------------------------------------------------------------------------------------------
 
-export type PurchaseOrderPaymentStatus = 'lunas' | 'sebagian' | 'belum_lunas';
+export type PurchaseOrderPaymentStatus = 'paid' | 'partial' | 'unpaid';
 
 export type PurchaseOrderListMap = {
   id: string;
@@ -81,6 +81,19 @@ export type IngredientOperationalContext = {
   ingredient_unit_name: string;
   unit_is_active: boolean;
   unit_conversion_factor: number;
+};
+
+export type PurchaseOrderPaymentSplit = {
+  totalAmount: number;
+  paidCash: number;
+  paidOwner: number;
+  debtAmount: number;
+};
+
+export type PurchaseOrderPaymentStatusContext = {
+  debt_amount: number;
+  debt_status?: 'unpaid' | 'partial' | 'paid';
+  debt_paid_amount?: number;
 };
 
 // ----------------------------------------------------------------------------------------------------

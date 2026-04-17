@@ -20,7 +20,9 @@ import type {
   PurchaseOrderDetailMap,
   PurchaseOrderListMap,
   PurchaseOrderListRow,
+  PurchaseOrderPaymentSplit,
   PurchaseOrderPaymentStatus,
+  PurchaseOrderPaymentStatusContext,
 } from './purchase-order.type';
 
 const MONEY_EPSILON = 1e-6;
@@ -304,17 +306,7 @@ const sumTotalAmount = (items: CreatePurchaseOrderRequest['items']): number => {
 };
 
 // Keep payment split exact enough for floating-point money calculations.
-const validatePaymentSplit = ({
-  totalAmount,
-  paidCash,
-  paidOwner,
-  debtAmount,
-}: {
-  totalAmount: number;
-  paidCash: number;
-  paidOwner: number;
-  debtAmount: number;
-}): void => {
+const validatePaymentSplit = ({ totalAmount, paidCash, paidOwner, debtAmount }: PurchaseOrderPaymentSplit): void => {
   if (paidCash < 0 || paidOwner < 0 || debtAmount < 0) {
     throw validationError('Payment values must be at least 0');
   }
@@ -330,24 +322,20 @@ const derivePaymentStatus = ({
   debt_amount,
   debt_status,
   debt_paid_amount,
-}: {
-  debt_amount: number;
-  debt_status?: 'unpaid' | 'partial' | 'paid';
-  debt_paid_amount?: number;
-}): PurchaseOrderPaymentStatus => {
+}: PurchaseOrderPaymentStatusContext): PurchaseOrderPaymentStatus => {
   if (debt_amount === 0) {
-    return 'lunas';
+    return 'paid';
   }
 
   if (debt_status === 'paid') {
-    return 'lunas';
+    return 'paid';
   }
 
   if ((debt_paid_amount ?? 0) > 0) {
-    return 'sebagian';
+    return 'partial';
   }
 
-  return 'belum_lunas';
+  return 'unpaid';
 };
 
 // Generate invoice number based on purchase date and daily sequence

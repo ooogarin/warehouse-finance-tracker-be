@@ -2,8 +2,10 @@ import { internalError, isAppError } from '@/core/errors/app-error';
 import * as dashboardRepository from './dashboard.repository';
 import type {
   DashboardCashMap,
+  DashboardCashSummaryRow,
   DashboardDebtAlertItemMap,
   DashboardExpenseCategoryMap,
+  DashboardExpenseCategoryRow,
   DashboardMap,
   DashboardStockAlertItemMap,
   GetDashboardRequest,
@@ -56,13 +58,7 @@ export const getDashboard = async ({ merchantId, period }: GetDashboardRequest):
   }
 };
 
-const toDashboardCashMap = (cash: {
-  current_balance: number;
-  total_in: number;
-  total_out: number;
-  previous_total_in: number;
-  previous_total_out: number;
-}): DashboardCashMap => {
+const toDashboardCashMap = (cash: DashboardCashSummaryRow): DashboardCashMap => {
   return {
     current_balance: cash.current_balance,
     total_in: cash.total_in,
@@ -75,9 +71,7 @@ const toDashboardCashMap = (cash: {
   };
 };
 
-const toExpenseCategoryMaps = (
-  rows: { category: DashboardExpenseCategoryMap['category']; total: number }[],
-): DashboardExpenseCategoryMap[] => {
+const toExpenseCategoryMaps = (rows: DashboardExpenseCategoryRow[]): DashboardExpenseCategoryMap[] => {
   const totalOut = rows.reduce((sum, row) => sum + row.total, 0);
 
   return rows.map((row) => ({

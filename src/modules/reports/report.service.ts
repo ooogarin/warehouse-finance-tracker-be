@@ -3,7 +3,9 @@ import * as reportRepository from './report.repository';
 import type { PaginationMeta } from '@/shared/types/common.types';
 import type {
   FinancialReportCashSummaryMap,
+  FinancialReportCashSummaryRow,
   FinancialReportCategoryMap,
+  FinancialReportCategoryRow,
   FinancialReportMap,
   GetFinancialReportRequest,
   GetStockReportRequest,
@@ -150,12 +152,7 @@ const toDateRangeMap = (
   previous_end: row.previous_end,
 });
 
-const toFinancialCashSummaryMap = (row: {
-  total_in: number;
-  total_out: number;
-  previous_total_in: number;
-  previous_total_out: number;
-}): FinancialReportCashSummaryMap => {
+const toFinancialCashSummaryMap = (row: FinancialReportCashSummaryRow): FinancialReportCashSummaryMap => {
   const net = row.total_in - row.total_out;
   const previousNet = row.previous_total_in - row.previous_total_out;
 
@@ -172,7 +169,7 @@ const toFinancialCashSummaryMap = (row: {
   };
 };
 
-const toCategoryMaps = (rows: { category: FinancialReportCategoryMap['category']; total: number }[]): FinancialReportCategoryMap[] => {
+const toCategoryMaps = (rows: FinancialReportCategoryRow[]): FinancialReportCategoryMap[] => {
   const total = rows.reduce((sum, row) => sum + row.total, 0);
 
   return rows.map((row) => ({

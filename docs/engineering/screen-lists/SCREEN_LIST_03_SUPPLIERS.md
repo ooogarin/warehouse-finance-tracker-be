@@ -173,7 +173,7 @@ Action per card:
 | Tanggal | `purchase_orders.purchase_date` |
 | No. Invoice | `purchase_orders.invoice_number` |
 | Total | `purchase_orders.total_amount` |
-| Status Bayar | derived: jika `debt_amount > 0` dan belum lunas → *"Belum Lunas"*, jika `debt_amount = 0` → *"Lunas"* |
+| Status Bayar | API value: `payment_status = paid / partial / unpaid`; UI label dapat ditampilkan sebagai *"Lunas"*, *"Sebagian"*, atau *"Belum Lunas"* |
 
 **States riwayat PO:**
 | State | Tampilan |

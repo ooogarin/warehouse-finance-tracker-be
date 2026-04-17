@@ -27,10 +27,10 @@ export const listByMerchantId = async ({
       po.total_amount::double precision AS total_amount,
       po.debt_amount::double precision AS debt_amount,
       CASE
-        WHEN po.debt_amount = 0 THEN 'lunas'
-        WHEN supplier_debt.status = 'paid' THEN 'lunas'
-        WHEN COALESCE(supplier_debt.paid_amount, 0) > 0 THEN 'sebagian'
-        ELSE 'belum_lunas'
+        WHEN po.debt_amount = 0 THEN 'paid'
+        WHEN supplier_debt.status = 'paid' THEN 'paid'
+        WHEN COALESCE(supplier_debt.paid_amount, 0) > 0 THEN 'partial'
+        ELSE 'unpaid'
       END AS payment_status
     FROM purchase_orders po
     LEFT JOIN suppliers s ON s.id = po.supplier_id

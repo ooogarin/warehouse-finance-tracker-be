@@ -158,7 +158,7 @@ const toSupplierPurchaseHistoryMap = (purchase: SupplierPurchaseHistoryRow): Sup
     purchase_date: purchase.purchase_date,
     invoice_number: purchase.invoice_number,
     total_amount: purchase.total_amount,
-    payment_status: Number(purchase.debt_amount) > 0 ? 'Belum Lunas' : 'Lunas',
+    payment_status: purchase.payment_status,
   };
 };
 
