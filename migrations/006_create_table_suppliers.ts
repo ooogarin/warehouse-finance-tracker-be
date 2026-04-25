@@ -1,5 +1,5 @@
 /**
- * Migration 005: Create suppliers Table
+ * Migration 006: Create suppliers Table
  */
 
 import type { SQL } from 'bun';

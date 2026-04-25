@@ -1,5 +1,5 @@
 /**
- * Migration 007: Create ingredient_units Table
+ * Migration 008: Create ingredient_units Table
  */
 
 import type { SQL } from 'bun';

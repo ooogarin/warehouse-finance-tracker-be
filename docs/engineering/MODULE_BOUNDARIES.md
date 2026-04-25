@@ -78,10 +78,11 @@ Owns account-level user behavior and identity-related flows, including:
 
 This module is the main exception to merchant-scoped handling.
 
-Current implementation status snapshot:
+Current auth scope:
 
-- Implemented in backend now: register, login, get-me, update profile, change password.
-- Public forgot-password and reset-password flow is part of product scope from screen lists, but backend implementation can be scheduled separately.
+- Public auth includes login only.
+- Authenticated account scope includes get-me, update profile, and change password.
+- Public forgot-password and reset-password flow remains part of product scope from screen lists and can be scheduled separately.
 
 ### `merchants`
 

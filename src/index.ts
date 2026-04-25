@@ -15,6 +15,7 @@ import { cashRoutesV1 } from '@/modules/cash/cash-v1.route';
 import { dashboardRoutesV1 } from '@/modules/dashboard/dashboard-v1.route';
 import { debtRoutesV1 } from '@/modules/debts/debt-v1.route';
 import { ingredientRoutesV1 } from '@/modules/ingredients/ingredient-v1.route';
+import { internalMerchantRoutesV1 } from '@/modules/internal-merchants/internal-merchant-v1.route';
 import { stockRoutesV1 } from '@/modules/inventory/stock-v1.route';
 import { merchantRoutesV1 } from '@/modules/merchants/merchant-v1.route';
 import { onboardingRoutesV1 } from '@/modules/onboarding/onboarding-v1.route';
@@ -101,6 +102,7 @@ const createApp = () => {
   app.route('/v1/debts', debtRoutesV1);
   app.route('/v1/dashboard', dashboardRoutesV1);
   app.route('/v1/reports', reportRoutesV1);
+  app.route('/v1/internal', internalMerchantRoutesV1);
 
   // Internal routes (health, metrics)
   // app.route('/internal', internalRoutes);

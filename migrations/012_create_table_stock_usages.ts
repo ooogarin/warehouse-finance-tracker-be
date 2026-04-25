@@ -1,5 +1,5 @@
 /**
- * Migration 011: Create stock_usages Table
+ * Migration 012: Create stock_usages Table
  */
 
 import type { SQL } from 'bun';

@@ -16,6 +16,11 @@ export interface MerchantContext {
   user_role: UserRole;
 }
 
+// Platform admin context information
+export interface PlatformAdminContext {
+  user_id: string;
+}
+
 /**
  * Hono context variables
  * These are set by middleware and accessed via c.get()
@@ -29,6 +34,9 @@ export interface AppVariables {
   // Merchant
   merchantId: string;
   merchant: MerchantContext;
+
+  // Platform admin
+  platformAdmin: PlatformAdminContext;
 
   // Request metadata
   requestId: string;

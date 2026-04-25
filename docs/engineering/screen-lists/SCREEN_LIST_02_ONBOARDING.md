@@ -46,11 +46,11 @@ FLOW — MERCHANT SETUP
 
 ### SCR-ONB-01 · Register / Sign Up
 
-**Route:** `/register`
-**Akses:** Public (belum login)
+**Route:** Not part of public app flow
+**Akses:** Internal setup only
 
-> Flow ini berdiri sendiri — langsung commit ke DB saat submit.
-> Setelah berhasil, user auto login dan diarahkan ke merchant setup.
+> Merchant account setup is handled internally by platform admin.
+> Public self-registration is outside the scope of this product flow.
 
 #### Components
 
@@ -63,12 +63,12 @@ FLOW — MERCHANT SETUP
 | Konfirmasi Password | password input | `[R]` harus sama dengan Password | — (validasi FE) |
 | Nomor HP | tel input | `[O]` max 20 karakter | `users.phone` |
 
-> `users.role` di-set otomatis `'owner'` `[AUTO]`. Tidak bisa diubah setelah register.
+> Initial merchant access is provisioned internally, not through public sign-up.
 
 **Actions**
 | Label | Trigger | Behaviour |
 |---|---|---|
-| Daftar | submit | Buat `users` record → auto login → simpan JWT → redirect ke `SCR-ONB-02` |
+| Daftar | submit | Not available in the public app flow |
 | Sudah punya akun? | link | Redirect ke `SCR-AUTH-01` |
 
 **States**
@@ -192,7 +192,7 @@ FLOW — MERCHANT SETUP
 
 | Screen ID | Nama Screen | Route | Akses |
 |---|---|---|---|
-| SCR-ONB-01 | Register | `/register` | Public |
+| SCR-ONB-01 | Register | Not part of public app flow | Internal setup only |
 | SCR-ONB-02 | Setup Profil Bisnis | `/onboarding/merchant` | Authenticated |
 | SCR-ONB-03 | Set Saldo Awal Kas | `/onboarding/merchant/balance` | Authenticated |
 | SCR-ONB-04 | Tambah Supplier Pertama | `/onboarding/merchant/supplier` | Authenticated |

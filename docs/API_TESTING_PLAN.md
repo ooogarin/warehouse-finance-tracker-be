@@ -37,12 +37,6 @@
 
 ## 3. Auth API
 
-- [ ] `POST /auth/register`
-  - [ ] Register berhasil dengan payload valid.
-  - [ ] Gagal jika email duplicate.
-  - [ ] Gagal jika email invalid.
-  - [ ] Gagal jika password kurang dari 8 karakter.
-  - [ ] Gagal jika name terlalu pendek/kosong.
 - [ ] `POST /auth/login`
   - [ ] Login berhasil dengan credential valid.
   - [ ] Gagal dengan password salah.

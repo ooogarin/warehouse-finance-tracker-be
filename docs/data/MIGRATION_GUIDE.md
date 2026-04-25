@@ -22,29 +22,30 @@ Each table gets its own migration file with:
 
 | File | Enums Created |
 |------|---------------|
-| `001_create_all_enums.ts` | user_role, merchant_type, ingredient_category, stock_usage_type, stock_adjustment_flow_type, stock_log_flow_type, stock_log_reference_type, cash_log_flow_type, cash_log_category, cash_log_reference_type, debt_creditor_type, debt_status, debt_payment_method |
+| `001_create_all_enums.ts` | user_role, merchant_type, merchant_subscription_plan, merchant_subscription_status, merchant_status, ingredient_category, stock_usage_type, stock_adjustment_flow_type, stock_log_flow_type, stock_log_reference_type, cash_log_flow_type, cash_log_category, cash_log_reference_type, debt_creditor_type, debt_status, debt_payment_method |
 
 ### Phase 2: Tables (in dependency order)
 
 | # | File | Table | Dependencies | Notes |
 |---|------|-------|--------------|-------|
 | 002 | `002_create_table_users.ts` | users | None | No DB default UUID |
-| 003 | `003_create_table_merchants.ts` | merchants | None | No DB default UUID |
-| 004 | `004_create_table_user_merchants.ts` | user_merchants | users, merchants | Junction table |
-| 005 | `005_create_table_suppliers.ts` | suppliers | merchants | - |
-| 006 | `006_create_table_ingredients.ts` | ingredients | merchants | Uses ingredient_category enum |
-| 007 | `007_create_table_ingredient_units.ts` | ingredient_units | ingredients | - |
-| 008 | `008_create_table_ingredient_batches.ts` | ingredient_batches | ingredients | FIFO tracking |
-| 009 | `009_create_table_purchase_orders.ts` | purchase_orders | merchants, suppliers | Payment split: cash/owner/debt |
-| 010 | `010_create_table_purchase_order_items.ts` | purchase_order_items | purchase_orders, ingredients, ingredient_units | Has generated subtotal column |
-| 011 | `011_create_table_stock_usages.ts` | stock_usages | merchants | Uses stock_usage_type enum |
-| 012 | `012_create_table_stock_usage_items.ts` | stock_usage_items | stock_usages, ingredients, ingredient_units | Has generated subtotal column |
-| 013 | `013_create_table_stock_adjustments.ts` | stock_adjustments | merchants | - |
-| 014 | `014_create_table_stock_adjustment_items.ts` | stock_adjustment_items | stock_adjustments, ingredients, ingredient_units | Uses stock_adjustment_flow_type enum |
-| 015 | `015_create_table_stock_logs.ts` | stock_logs | ingredients, users | Uses stock_log_flow_type & stock_log_reference_type enums |
-| 016 | `016_create_table_cash_logs.ts` | cash_logs | merchants, users | Uses flow/category/reference enums |
-| 017 | `017_create_table_debts.ts` | debts | merchants, suppliers, purchase_orders | Uses creditor & status enums |
-| 018 | `018_create_table_debt_payments.ts` | debt_payments | debts, users | Uses payment_method enum |
+| 003 | `003_create_table_merchants.ts` | merchants | None | Includes merchant subscription fields |
+| 004 | `004_create_table_platform_admins.ts` | platform_admins | users | Platform admin access list |
+| 005 | `005_create_table_user_merchants.ts` | user_merchants | users, merchants | Junction table |
+| 006 | `006_create_table_suppliers.ts` | suppliers | merchants | - |
+| 007 | `007_create_table_ingredients.ts` | ingredients | merchants | Uses ingredient_category enum |
+| 008 | `008_create_table_ingredient_units.ts` | ingredient_units | ingredients | - |
+| 009 | `009_create_table_ingredient_batches.ts` | ingredient_batches | ingredients | FIFO tracking |
+| 010 | `010_create_table_purchase_orders.ts` | purchase_orders | merchants, suppliers | Payment split: cash/owner/debt |
+| 011 | `011_create_table_purchase_order_items.ts` | purchase_order_items | purchase_orders, ingredients, ingredient_units | Has generated subtotal column |
+| 012 | `012_create_table_stock_usages.ts` | stock_usages | merchants | Uses stock_usage_type enum |
+| 013 | `013_create_table_stock_usage_items.ts` | stock_usage_items | stock_usages, ingredients, ingredient_units | Has generated subtotal column |
+| 014 | `014_create_table_stock_adjustments.ts` | stock_adjustments | merchants | - |
+| 015 | `015_create_table_stock_adjustment_items.ts` | stock_adjustment_items | stock_adjustments, ingredients, ingredient_units | Uses stock_adjustment_flow_type enum |
+| 016 | `016_create_table_stock_logs.ts` | stock_logs | ingredients, users | Uses stock_log_flow_type & stock_log_reference_type enums |
+| 017 | `017_create_table_cash_logs.ts` | cash_logs | merchants, users | Uses flow/category/reference enums |
+| 018 | `018_create_table_debts.ts` | debts | merchants, suppliers, purchase_orders | Uses creditor & status enums |
+| 019 | `019_create_table_debt_payments.ts` | debt_payments | debts, users | Uses payment_method enum |
 
 ---
 

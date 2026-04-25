@@ -1,5 +1,5 @@
 /**
- * Migration 004: Create user_merchants Table
+ * Migration 005: Create user_merchants Table
  */
 
 import type { SQL } from 'bun';

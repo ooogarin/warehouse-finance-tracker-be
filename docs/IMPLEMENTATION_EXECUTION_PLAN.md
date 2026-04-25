@@ -21,7 +21,6 @@ Current backend code snapshot used for this audit:
 ### What Is Implemented
 
 - Public auth:
-  - `POST /auth/register`
   - `POST /auth/login`
 - Protected auth/account:
   - `GET /v1/auth/me`
@@ -138,7 +137,7 @@ Status legend:
 
 - [ ] Confirm final auth contracts (messages, response shape, status codes).
 - [ ] Keep only required auth scope in backend for now:
-  - register/login/get-me/update-profile/change-password.
+  - login/get-me/update-profile/change-password.
 - [ ] Add automated tests for existing auth endpoints before adding new modules.
 
 Acceptance criteria:
