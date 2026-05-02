@@ -59,9 +59,9 @@ CREATE TYPE merchant_type AS ENUM (
 );
 
 CREATE TYPE merchant_subscription_plan AS ENUM (
-    'starter',
-    'pro',
-    'business'
+    'basic',
+    'plus',
+    'pro'
 );
 
 CREATE TYPE merchant_subscription_status AS ENUM (
@@ -72,11 +72,6 @@ CREATE TYPE merchant_subscription_status AS ENUM (
     'suspended'
 );
 
-CREATE TYPE merchant_status AS ENUM (
-    'active',
-    'suspended',
-    'archived'
-);
 ```
 
 #### Create Table
@@ -88,9 +83,8 @@ CREATE TABLE merchants (
     type merchant_type DEFAULT 'restaurant',
     address TEXT,
     phone VARCHAR(20),
-    status merchant_status NOT NULL DEFAULT 'active',
     cash_balance DECIMAL(15,3) NOT NULL DEFAULT 0,
-    subscription_plan merchant_subscription_plan NOT NULL DEFAULT 'starter',
+    subscription_plan merchant_subscription_plan NOT NULL DEFAULT 'basic',
     subscription_status merchant_subscription_status NOT NULL DEFAULT 'trialing',
     subscription_started_at TIMESTAMPTZ NULL,
     subscription_expires_at TIMESTAMPTZ NULL,
@@ -106,10 +100,6 @@ CREATE TABLE merchants (
 ```sql
 CREATE INDEX idx_merchants_deleted_at
     ON merchants(deleted_at)
-    WHERE deleted_at IS NULL;
-
-CREATE INDEX idx_merchants_status
-    ON merchants(status)
     WHERE deleted_at IS NULL;
 
 CREATE INDEX idx_merchants_subscription_status

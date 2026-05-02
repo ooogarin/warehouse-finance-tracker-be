@@ -22,7 +22,7 @@ Each table gets its own migration file with:
 
 | File | Enums Created |
 |------|---------------|
-| `001_create_all_enums.ts` | user_role, merchant_type, merchant_subscription_plan, merchant_subscription_status, merchant_status, ingredient_category, stock_usage_type, stock_adjustment_flow_type, stock_log_flow_type, stock_log_reference_type, cash_log_flow_type, cash_log_category, cash_log_reference_type, debt_creditor_type, debt_status, debt_payment_method |
+| `001_create_all_enums.ts` | user_role, merchant_type, merchant_subscription_plan, merchant_subscription_status, ingredient_category, stock_usage_type, stock_adjustment_flow_type, stock_log_flow_type, stock_log_reference_type, cash_log_flow_type, cash_log_category, cash_log_reference_type, debt_creditor_type, debt_status, debt_payment_method |
 
 ### Phase 2: Tables (in dependency order)
 

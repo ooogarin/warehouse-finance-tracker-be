@@ -13,7 +13,6 @@ const baseMerchantSelection = sql`
   type,
   address,
   phone,
-  status,
   cash_balance,
   subscription_plan,
   subscription_status,
@@ -55,7 +54,6 @@ export const insert = async (db: ReservedSQL, payload: InternalMerchantInsertPay
     'type',
     'address',
     'phone',
-    'status',
     'cash_balance',
     'subscription_plan',
     'subscription_status',
@@ -82,7 +80,7 @@ export const updateById = async (
   merchantId: string,
   payload: InternalMerchantUpdatePayload,
 ): Promise<InternalMerchantRow | null> => {
-  const allowedColumns = ['name', 'type', 'address', 'phone', 'status'] as const;
+  const allowedColumns = ['name', 'type', 'address', 'phone'] as const;
 
   const [result] = await db<InternalMerchantRow[]>`
     UPDATE merchants

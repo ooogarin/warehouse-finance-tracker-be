@@ -57,7 +57,6 @@ export const create = async (data: CreateInternalMerchantRequest): Promise<Inter
       type: data.type,
       address: data.address ?? null,
       phone: data.phone ?? null,
-      status: data.status,
       cash_balance: '0',
       subscription_plan: data.subscription_plan,
       subscription_status: data.subscription_status,
@@ -99,9 +98,6 @@ export const update = async ({ merchantId, data }: UpdateInternalMerchantService
     }
     if (data.phone !== undefined) {
       payload.phone = data.phone;
-    }
-    if (data.status !== undefined) {
-      payload.status = data.status;
     }
 
     const updated = await internalMerchantRepository.updateById(connection, merchantId, payload);
@@ -176,7 +172,6 @@ const toInternalMerchantMap = (merchant: InternalMerchantRow): InternalMerchantM
     type: merchant.type,
     address: merchant.address,
     phone: merchant.phone,
-    status: merchant.status,
     cash_balance: merchant.cash_balance,
     subscription_plan: merchant.subscription_plan,
     subscription_status: merchant.subscription_status,

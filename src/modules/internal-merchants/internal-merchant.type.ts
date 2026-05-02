@@ -2,14 +2,12 @@ import type { z } from 'zod';
 import type {
   createInternalMerchantSchema,
   internalMerchantParamsSchema,
-  internalMerchantStatusSchema,
   internalMerchantSubscriptionPlanSchema,
   internalMerchantSubscriptionStatusSchema,
   updateInternalMerchantSchema,
   updateInternalMerchantSubscriptionSchema,
 } from './internal-merchant.schema';
 
-export type InternalMerchantStatus = z.infer<typeof internalMerchantStatusSchema>;
 export type InternalMerchantSubscriptionPlan = z.infer<typeof internalMerchantSubscriptionPlanSchema>;
 export type InternalMerchantSubscriptionStatus = z.infer<typeof internalMerchantSubscriptionStatusSchema>;
 
@@ -48,7 +46,6 @@ export type InternalMerchantMap = {
   type: InternalMerchantType;
   address: string | null;
   phone: string | null;
-  status: InternalMerchantStatus;
   cash_balance: string;
   subscription_plan: InternalMerchantSubscriptionPlan;
   subscription_status: InternalMerchantSubscriptionStatus;
@@ -69,7 +66,6 @@ export type InternalMerchantInsertPayload = {
   type: InternalMerchantType;
   address?: string | null;
   phone?: string | null;
-  status: InternalMerchantStatus;
   cash_balance: string;
   subscription_plan: InternalMerchantSubscriptionPlan;
   subscription_status: InternalMerchantSubscriptionStatus;
@@ -83,7 +79,6 @@ export type InternalMerchantUpdatePayload = {
   type?: InternalMerchantType;
   address?: string | null;
   phone?: string | null;
-  status?: InternalMerchantStatus;
 };
 
 export type InternalMerchantSubscriptionUpdatePayload = {
@@ -104,7 +99,6 @@ export interface InternalMerchantRow {
   type: InternalMerchantType;
   address: string | null;
   phone: string | null;
-  status: InternalMerchantStatus;
   cash_balance: string;
   subscription_plan: InternalMerchantSubscriptionPlan;
   subscription_status: InternalMerchantSubscriptionStatus;

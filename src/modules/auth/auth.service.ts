@@ -2,7 +2,7 @@ import { logger } from '@/core/config/logger.config';
 import { commitTransaction, rollbackTransaction, startTransaction } from '@/core/db/client';
 import { internalError, isAppError, notFoundError, unauthorizedError } from '@/core/errors/app-error';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
-import { verifyPassword } from '@/shared/utils/crypto.util';
+import { hashPassword, verifyPassword } from '@/shared/utils/crypto.util';
 import { generateToken } from '@/shared/utils/jwt.util';
 import * as authRepository from './auth.repository';
 import type { ReservedSQL } from '@/core/db/client';
