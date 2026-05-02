@@ -59,6 +59,7 @@ const resetDatabase = async (): Promise<void> => {
       'ingredient_units',
       'ingredients',
       'suppliers',
+      'platform_admins',
       'user_merchants',
       'merchants',
       'users',
@@ -83,6 +84,8 @@ const resetDatabase = async (): Promise<void> => {
       'stock_adjustment_flow_type',
       'stock_usage_type',
       'ingredient_category',
+      'merchant_subscription_status',
+      'merchant_subscription_plan',
       'merchant_type',
       'user_role',
     ];
