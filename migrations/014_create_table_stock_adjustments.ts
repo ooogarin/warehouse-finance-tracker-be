@@ -1,5 +1,5 @@
 /**
- * Migration 013: Create stock_adjustments Table
+ * Migration 014: Create stock_adjustments Table
  */
 
 import type { SQL } from 'bun';

@@ -1,6 +1,6 @@
 import { sql } from '@/core/db/client';
 import type { ReservedSQL } from '@/core/db/client';
-import type { UserInsertPayload, UserRow, UserUpdatePayload } from './auth.type';
+import type { UserRow, UserUpdatePayload } from './auth.type';
 
 // Get user by ID
 export const getOneById = async (id: string): Promise<UserRow | null> => {
@@ -44,46 +44,6 @@ export const getOneByEmail = async (email: string): Promise<UserRow | null> => {
   `;
 
   return result ?? null;
-};
-
-// Check if email exists
-export const existsByEmail = async (email: string): Promise<boolean> => {
-  const [result] = await sql<{ exists: boolean }[]>`
-    SELECT
-      EXISTS (
-        SELECT 1
-        FROM users
-        WHERE email = ${email}
-          AND deleted_at IS NULL
-      ) AS exists
-  `;
-
-  return Boolean(result?.exists);
-};
-
-// Insert new user
-export const insert = async (connection: ReservedSQL, payload: UserInsertPayload): Promise<UserRow> => {
-  const allowedColumns = ['id', 'name', 'email', 'password', 'role', 'phone'] as const;
-
-  const [result] = await connection<UserRow[]>`
-    INSERT INTO users ${sql(payload, ...allowedColumns)}
-    RETURNING
-      id,
-      name,
-      email,
-      password,
-      role,
-      phone,
-      created_at,
-      updated_at,
-      deleted_at
-  `;
-
-  if (!result) {
-    throw new Error('User insert failed');
-  }
-
-  return result;
 };
 
 // Update user by ID

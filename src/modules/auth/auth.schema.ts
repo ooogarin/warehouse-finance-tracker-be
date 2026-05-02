@@ -1,13 +1,5 @@
 import { z } from 'zod';
 
-// Registration schema
-export const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be at most 100 characters'),
-  email: z.string().email('Invalid email format').max(100, 'Email must be at most 100 characters'),
-  password: z.string().min(8, 'Password must be at least 8 characters').max(255, 'Password must be at most 255 characters'),
-  phone: z.string().max(20, 'Phone must be at most 20 characters').optional(),
-});
-
 // Login schema
 export const loginSchema = z.object({
   email: z.string().email('Invalid email format'),

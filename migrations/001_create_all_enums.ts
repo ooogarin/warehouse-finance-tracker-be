@@ -10,6 +10,8 @@ export const up = async (transaction: SQL): Promise<void> => {
 
   // Merchant types
   await transaction`CREATE TYPE merchant_type AS ENUM ('restaurant', 'cafe', 'catering', 'other')`;
+  await transaction`CREATE TYPE merchant_subscription_plan AS ENUM ('basic', 'plus', 'pro')`;
+  await transaction`CREATE TYPE merchant_subscription_status AS ENUM ('trialing', 'active', 'past_due', 'expired', 'suspended')`;
 
   // Ingredient categories
   await transaction`
@@ -106,6 +108,8 @@ export const down = async (transaction: SQL): Promise<void> => {
   await transaction`DROP TYPE IF EXISTS stock_adjustment_flow_type CASCADE`;
   await transaction`DROP TYPE IF EXISTS stock_usage_type CASCADE`;
   await transaction`DROP TYPE IF EXISTS ingredient_category CASCADE`;
+  await transaction`DROP TYPE IF EXISTS merchant_subscription_status CASCADE`;
+  await transaction`DROP TYPE IF EXISTS merchant_subscription_plan CASCADE`;
   await transaction`DROP TYPE IF EXISTS merchant_type CASCADE`;
   await transaction`DROP TYPE IF EXISTS user_role CASCADE`;
 };

@@ -57,6 +57,21 @@ CREATE TYPE merchant_type AS ENUM (
     'catering',
     'other'
 );
+
+CREATE TYPE merchant_subscription_plan AS ENUM (
+    'basic',
+    'plus',
+    'pro'
+);
+
+CREATE TYPE merchant_subscription_status AS ENUM (
+    'trialing',
+    'active',
+    'past_due',
+    'expired',
+    'suspended'
+);
+
 ```
 
 #### Create Table
@@ -69,6 +84,11 @@ CREATE TABLE merchants (
     address TEXT,
     phone VARCHAR(20),
     cash_balance DECIMAL(15,3) NOT NULL DEFAULT 0,
+    subscription_plan merchant_subscription_plan NOT NULL DEFAULT 'basic',
+    subscription_status merchant_subscription_status NOT NULL DEFAULT 'trialing',
+    subscription_started_at TIMESTAMPTZ NULL,
+    subscription_expires_at TIMESTAMPTZ NULL,
+    subscription_notes TEXT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ NULL
@@ -81,6 +101,40 @@ CREATE TABLE merchants (
 CREATE INDEX idx_merchants_deleted_at
     ON merchants(deleted_at)
     WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_merchants_subscription_status
+    ON merchants(subscription_status)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_merchants_subscription_expires_at
+    ON merchants(subscription_expires_at)
+    WHERE deleted_at IS NULL;
+```
+
+---
+
+### `platform_admins`
+
+Platform-level access list for internal SaaS administration. A user in this table can access
+internal platform APIs regardless of merchant membership.
+
+#### Create Table
+
+```sql
+CREATE TABLE platform_admins (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_platform_admin_user UNIQUE(user_id),
+    CONSTRAINT fk_platform_admins_users FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+#### Create Index
+
+```sql
+CREATE INDEX idx_platform_admins_user_id
+    ON platform_admins(user_id);
 ```
 
 ---

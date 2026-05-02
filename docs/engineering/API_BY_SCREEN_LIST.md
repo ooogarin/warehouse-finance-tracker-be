@@ -48,7 +48,6 @@ Related account APIs:
 
 | Endpoint | Status | Notes |
 |---|---|---|
-| `POST /auth/register` | IMPLEMENTED | Used by onboarding register flow. |
 | `GET /v1/auth/me` | IMPLEMENTED | Account profile read. |
 | `PUT /v1/auth/profile` | IMPLEMENTED | Account profile update. |
 | `PUT /v1/auth/password` | IMPLEMENTED | Password update for authenticated user. |
@@ -57,7 +56,7 @@ Related account APIs:
 
 | Screen | Frontend Route | Backend API | Status |
 |---|---|---|---|
-| SCR-ONB-01 Register | `/register` | `POST /auth/register` | IMPLEMENTED |
+| SCR-ONB-01 Register | `/register` | No public backend API. Account and merchant setup are provisioned through internal platform admin flow. | PLANNED |
 | SCR-ONB-02 Setup Merchant | `/onboarding/merchant` | Included in completion payload | IMPLEMENTED |
 | SCR-ONB-03 Opening Balance | `/onboarding/merchant/balance` | Included in completion payload | IMPLEMENTED |
 | SCR-ONB-04 First Supplier | `/onboarding/merchant/supplier` | Included in completion payload | IMPLEMENTED |

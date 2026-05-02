@@ -1,5 +1,5 @@
 /**
- * Migration 009: Create purchase_orders Table
+ * Migration 010: Create purchase_orders Table
  */
 
 import type { SQL } from 'bun';

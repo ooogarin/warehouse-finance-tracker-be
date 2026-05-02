@@ -1,5 +1,5 @@
 /**
- * Migration 018: Create debt_payments Table
+ * Migration 019: Create debt_payments Table
  */
 
 import type { SQL } from 'bun';

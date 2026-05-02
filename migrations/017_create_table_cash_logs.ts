@@ -1,5 +1,5 @@
 /**
- * Migration 016: Create cash_logs Table
+ * Migration 017: Create cash_logs Table
  */
 
 import type { SQL } from 'bun';
