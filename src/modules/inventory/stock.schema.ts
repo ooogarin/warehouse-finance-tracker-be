@@ -9,7 +9,7 @@ export const stockParamsSchema = z.object({
 
 export const stockListQuerySchema = z.object({
   search: z.string().max(100).optional(),
-  category: z.enum(['vegetables', 'meat', 'seafood', 'spices', 'oil', 'grains', 'liquid', 'other']).optional(),
+  category: z.enum(['vegetables', 'meat', 'seafood', 'spices', 'grains', 'oil', 'liquid', 'flour', 'other']).optional(),
   status: stockStatusSchema.optional(),
 });
 

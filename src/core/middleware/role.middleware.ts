@@ -53,9 +53,3 @@ export const requireOwner = requireRole('owner');
  * Shorthand for requireRole("staff")
  */
 export const requireStaff = requireRole('staff');
-
-/**
- * Require cashier role (any authenticated user)
- * Shorthand for requireRole("cashier")
- */
-export const requireCashier = requireRole('cashier');

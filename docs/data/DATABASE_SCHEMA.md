@@ -9,8 +9,7 @@
 ```sql
 CREATE TYPE user_role AS ENUM (
     'owner',
-    'staff',
-    'cashier'
+    'staff'
 );
 ```
 
@@ -215,9 +214,10 @@ CREATE TYPE ingredient_category AS ENUM (
     'meat',
     'seafood',
     'spices',
-    'oil',
     'grains',
+    'oil',
     'liquid',
+    'flour',
     'other'
 );
 ```

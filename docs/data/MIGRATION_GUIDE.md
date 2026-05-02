@@ -57,7 +57,7 @@ Each table gets its own migration file with:
 import type { SQL } from 'bun';
 
 export const up = async (trx: SQL) => {
-  await trx`CREATE TYPE user_role AS ENUM ('owner', 'staff', 'cashier')`;
+  await trx`CREATE TYPE user_role AS ENUM ('owner', 'staff')`;
   await trx`CREATE TYPE merchant_type AS ENUM ('restaurant', 'cafe', 'catering', 'other')`;
   // ... other enums
 };

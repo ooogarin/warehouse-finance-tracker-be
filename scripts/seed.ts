@@ -3,7 +3,7 @@
  * Database Seeder
  *
  * Usage:
- *   bun run db:seed                 # Seed database with sample data
+ *   bun run db:seed                 # Seed baseline user, merchant, and user_merchants data
  *   bun run db:seed --reset         # Reset and reseed
  *   bun run db:seed --reset-only    # Reset data only
  */
@@ -50,7 +50,7 @@ const seed = async (sql: SQL): Promise<void> => {
           ${userEmail},
           ${hashedPassword},
           'owner',
-          '+6281234567890'
+          '081234567890'
         )
         RETURNING id
       `;
@@ -81,7 +81,7 @@ const seed = async (sql: SQL): Promise<void> => {
           ${merchantName},
           'restaurant',
           'Jl. Makan No. 123, Jakarta',
-          '+6281234567891',
+          '081234567891',
           1000000
         )
         RETURNING id
@@ -106,46 +106,6 @@ const seed = async (sql: SQL): Promise<void> => {
       `;
       logger.info('User linked to merchant');
     }
-
-    // Suppliers
-    const suppliers = [
-      { name: 'PT Makmur Jaya', phone: '+6281234567892' },
-      { name: 'Supplier Bahan Segar', phone: '+6281234567893' },
-      { name: 'Distributor Minuman', phone: '+6281234567894' },
-    ];
-
-    for (const sup of suppliers) {
-      const existingSupplier = await sql<{ id: string }[]>`
-        SELECT id
-        FROM suppliers
-        WHERE merchant_id = ${resolvedMerchantId}
-          AND name = ${sup.name}
-          AND deleted_at IS NULL
-        LIMIT 1
-      `;
-
-      if (existingSupplier.length > 0) {
-        await sql`
-          UPDATE suppliers
-          SET
-            phone = ${sup.phone},
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = ${existingSupplier[0].id}
-        `;
-        continue;
-      }
-
-      await sql`
-        INSERT INTO suppliers (id, merchant_id, name, phone)
-        VALUES (
-          ${crypto.randomUUID()},
-          ${resolvedMerchantId},
-          ${sup.name},
-          ${sup.phone}
-        )
-      `;
-    }
-    logger.info(`${suppliers.length} suppliers ready`);
 
     logger.info('✨ Database seeding completed successfully!');
   } catch (error) {
