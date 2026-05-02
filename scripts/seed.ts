@@ -3,7 +3,7 @@
  * Database Seeder
  *
  * Usage:
- *   bun run db:seed                 # Seed database with sample data
+ *   bun run db:seed                 # Seed baseline user, merchant, and user_merchants data
  *   bun run db:seed --reset         # Reset and reseed
  *   bun run db:seed --reset-only    # Reset data only
  */
@@ -24,46 +24,76 @@ const hashPassword = async (plainPassword: string): Promise<string> => {
   return await password.hash(plainPassword, { algorithm: 'bcrypt', cost: 10 });
 };
 
+const BASELINE_USER = {
+  name: 'John Owner',
+  email: 'owner@example.com',
+  password: 'password123',
+  role: 'owner',
+  phone: '081234567890',
+} as const;
+
+const BASELINE_MERCHANT = {
+  name: 'Warung Sederhana',
+  type: 'restaurant',
+  address: 'Jl. Makan No. 123, Jakarta',
+  phone: '081234567891',
+  cash_balance: 1000000,
+  subscription_plan: 'basic',
+  subscription_status: 'trialing',
+  subscription_started_at: '2026-05-02T00:00:00.000Z',
+  subscription_expires_at: '2026-06-02T00:00:00.000Z',
+  subscription_notes: 'Baseline seeded merchant',
+} as const;
+
 const seed = async (sql: SQL): Promise<void> => {
   logger.info('Starting database seeding...');
 
   try {
     // User
-    const hashedPassword = await hashPassword('password123');
-    const userEmail = 'owner@example.com';
+    const hashedPassword = await hashPassword(BASELINE_USER.password);
 
-    const existingUser = await sql`
-      SELECT id FROM users WHERE email = ${userEmail} AND deleted_at IS NULL
+    const existingUser = await sql<{ id: string }[]>`
+      SELECT id FROM users WHERE email = ${BASELINE_USER.email} AND deleted_at IS NULL
     `;
 
     let userId: string;
 
     if (existingUser.length > 0) {
       userId = existingUser[0].id;
-      logger.info(`User already exists: ${userEmail}`);
+      await sql`
+        UPDATE users
+        SET
+          name = ${BASELINE_USER.name},
+          password = ${hashedPassword},
+          role = ${BASELINE_USER.role},
+          phone = ${BASELINE_USER.phone},
+          updated_at = CURRENT_TIMESTAMP,
+          deleted_at = NULL
+        WHERE id = ${userId}
+      `;
+      logger.info(`User refreshed: ${BASELINE_USER.email} / ${BASELINE_USER.password}`);
     } else {
-      const inserted = await sql`
+      const inserted = await sql<{ id: string }[]>`
         INSERT INTO users (id, name, email, password, role, phone)
         VALUES (
           ${crypto.randomUUID()},
-          'John Owner',
-          ${userEmail},
+          ${BASELINE_USER.name},
+          ${BASELINE_USER.email},
           ${hashedPassword},
-          'owner',
-          '+6281234567890'
+          ${BASELINE_USER.role},
+          ${BASELINE_USER.phone}
         )
         RETURNING id
       `;
       userId = inserted[0].id;
-      logger.info(`User created: ${userEmail} / password123`);
+      logger.info(`User created: ${BASELINE_USER.email} / ${BASELINE_USER.password}`);
     }
 
     // Merchant (idempotent by name)
-    const merchantName = 'Warung Sederhana';
     const existingMerchant = await sql<{ id: string }[]>`
       SELECT id
       FROM merchants
-      WHERE name = ${merchantName}
+      WHERE name = ${BASELINE_MERCHANT.name}
         AND deleted_at IS NULL
       LIMIT 1
     `;
@@ -72,26 +102,59 @@ const seed = async (sql: SQL): Promise<void> => {
 
     if (existingMerchant.length > 0) {
       resolvedMerchantId = existingMerchant[0].id;
-      logger.info(`Merchant already exists: ${merchantName}`);
+      await sql`
+        UPDATE merchants
+        SET
+          type = ${BASELINE_MERCHANT.type},
+          address = ${BASELINE_MERCHANT.address},
+          phone = ${BASELINE_MERCHANT.phone},
+          cash_balance = ${BASELINE_MERCHANT.cash_balance},
+          subscription_plan = ${BASELINE_MERCHANT.subscription_plan},
+          subscription_status = ${BASELINE_MERCHANT.subscription_status},
+          subscription_started_at = ${BASELINE_MERCHANT.subscription_started_at},
+          subscription_expires_at = ${BASELINE_MERCHANT.subscription_expires_at},
+          subscription_notes = ${BASELINE_MERCHANT.subscription_notes},
+          updated_at = CURRENT_TIMESTAMP,
+          deleted_at = NULL
+        WHERE id = ${resolvedMerchantId}
+      `;
+      logger.info(`Merchant refreshed: ${BASELINE_MERCHANT.name}`);
     } else {
       const insertedMerchant = await sql<{ id: string }[]>`
-        INSERT INTO merchants (id, name, type, address, phone, cash_balance)
+        INSERT INTO merchants (
+          id,
+          name,
+          type,
+          address,
+          phone,
+          cash_balance,
+          subscription_plan,
+          subscription_status,
+          subscription_started_at,
+          subscription_expires_at,
+          subscription_notes
+        )
         VALUES (
           ${crypto.randomUUID()},
-          ${merchantName},
-          'restaurant',
-          'Jl. Makan No. 123, Jakarta',
-          '+6281234567891',
-          1000000
+          ${BASELINE_MERCHANT.name},
+          ${BASELINE_MERCHANT.type},
+          ${BASELINE_MERCHANT.address},
+          ${BASELINE_MERCHANT.phone},
+          ${BASELINE_MERCHANT.cash_balance},
+          ${BASELINE_MERCHANT.subscription_plan},
+          ${BASELINE_MERCHANT.subscription_status},
+          ${BASELINE_MERCHANT.subscription_started_at},
+          ${BASELINE_MERCHANT.subscription_expires_at},
+          ${BASELINE_MERCHANT.subscription_notes}
         )
         RETURNING id
       `;
 
       resolvedMerchantId = insertedMerchant[0].id;
-      logger.info(`Merchant created: ${merchantName}`);
+      logger.info(`Merchant created: ${BASELINE_MERCHANT.name}`);
     }
 
-    logger.info(`Merchant ready: Warung Sederhana`);
+    logger.info(`Merchant ready: ${BASELINE_MERCHANT.name}`);
 
     // User - Merchant Junction
     if (userId && resolvedMerchantId) {
@@ -106,46 +169,6 @@ const seed = async (sql: SQL): Promise<void> => {
       `;
       logger.info('User linked to merchant');
     }
-
-    // Suppliers
-    const suppliers = [
-      { name: 'PT Makmur Jaya', phone: '+6281234567892' },
-      { name: 'Supplier Bahan Segar', phone: '+6281234567893' },
-      { name: 'Distributor Minuman', phone: '+6281234567894' },
-    ];
-
-    for (const sup of suppliers) {
-      const existingSupplier = await sql<{ id: string }[]>`
-        SELECT id
-        FROM suppliers
-        WHERE merchant_id = ${resolvedMerchantId}
-          AND name = ${sup.name}
-          AND deleted_at IS NULL
-        LIMIT 1
-      `;
-
-      if (existingSupplier.length > 0) {
-        await sql`
-          UPDATE suppliers
-          SET
-            phone = ${sup.phone},
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = ${existingSupplier[0].id}
-        `;
-        continue;
-      }
-
-      await sql`
-        INSERT INTO suppliers (id, merchant_id, name, phone)
-        VALUES (
-          ${crypto.randomUUID()},
-          ${resolvedMerchantId},
-          ${sup.name},
-          ${sup.phone}
-        )
-      `;
-    }
-    logger.info(`${suppliers.length} suppliers ready`);
 
     logger.info('✨ Database seeding completed successfully!');
   } catch (error) {

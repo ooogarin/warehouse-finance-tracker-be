@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const ingredientCategorySchema = z.enum(['vegetables', 'meat', 'seafood', 'spices', 'oil', 'grains', 'liquid', 'other']);
+const ingredientCategorySchema = z.enum(['vegetables', 'meat', 'seafood', 'spices', 'grains', 'oil', 'liquid', 'flour', 'other']);
 
 export const ingredientParamsSchema = z.object({
   id: z.string().uuid('Ingredient ID must be a valid UUID'),

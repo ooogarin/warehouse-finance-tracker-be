@@ -18,7 +18,7 @@ export type CreateIngredientRequest = z.infer<typeof createIngredientSchema>;
 
 export type UpdateIngredientRequest = z.infer<typeof updateIngredientSchema>;
 
-export type IngredientCategory = 'vegetables' | 'meat' | 'seafood' | 'spices' | 'oil' | 'grains' | 'liquid' | 'other';
+export type IngredientCategory = 'vegetables' | 'meat' | 'seafood' | 'spices' | 'grains' | 'oil' | 'liquid' | 'flour' | 'other';
 
 export type ListIngredientsRequest = ListIngredientsQuery & {
   merchantId: string;

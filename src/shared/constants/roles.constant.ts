@@ -4,15 +4,13 @@ export const USER_ROLES = {
   OWNER: 'owner',
   // Staff can manage inventory and view reports
   STAFF: 'staff',
-  // Cashier can only manage cash transactions
-  CASHIER: 'cashier',
 } as const;
 
 // Type for user roles
 export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 
 // All valid roles as an array
-export const ALL_ROLES: UserRole[] = [USER_ROLES.OWNER, USER_ROLES.STAFF, USER_ROLES.CASHIER];
+export const ALL_ROLES: UserRole[] = [USER_ROLES.OWNER, USER_ROLES.STAFF];
 
 // Check if a role is valid
 export const isValidRole = (role: string): role is UserRole => {
@@ -21,9 +19,8 @@ export const isValidRole = (role: string): role is UserRole => {
 
 // Role hierarchy (higher index = more permissions)
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
-  [USER_ROLES.CASHIER]: 1,
-  [USER_ROLES.STAFF]: 2,
-  [USER_ROLES.OWNER]: 3,
+  [USER_ROLES.STAFF]: 1,
+  [USER_ROLES.OWNER]: 2,
 };
 
 // Check if a role has permission level >= required role

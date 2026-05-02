@@ -6,7 +6,7 @@ import type { SQL } from 'bun';
 
 export const up = async (transaction: SQL): Promise<void> => {
   // User roles
-  await transaction`CREATE TYPE user_role AS ENUM ('owner', 'staff', 'cashier')`;
+  await transaction`CREATE TYPE user_role AS ENUM ('owner', 'staff')`;
 
   // Merchant types
   await transaction`CREATE TYPE merchant_type AS ENUM ('restaurant', 'cafe', 'catering', 'other')`;
@@ -20,9 +20,10 @@ export const up = async (transaction: SQL): Promise<void> => {
       'meat',
       'seafood',
       'spices',
-      'oil',
       'grains',
+      'oil',
       'liquid',
+      'flour',
       'other'
     )
   `;
