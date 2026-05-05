@@ -3,7 +3,7 @@
  * Database Seeder
  *
  * Usage:
- *   bun run db:seed                 # Seed baseline user, merchant, and user_merchants data
+ *   bun run db:seed                 # Seed baseline platform admin, user, merchant, and user_merchants data
  *   bun run db:seed --reset         # Reset and reseed
  *   bun run db:seed --reset-only    # Reset data only
  */
@@ -170,6 +170,19 @@ const seed = async (sql: SQL): Promise<void> => {
       logger.info('User linked to merchant');
     }
 
+    // Platform admin access
+    if (userId) {
+      await sql`
+        INSERT INTO platform_admins (id, user_id)
+        VALUES (
+          ${crypto.randomUUID()},
+          ${userId}
+        )
+        ON CONFLICT (user_id) DO NOTHING
+      `;
+      logger.info('User linked as platform admin');
+    }
+
     logger.info('✨ Database seeding completed successfully!');
   } catch (error) {
     logger.error(`Seeding failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -195,6 +208,7 @@ const reset = async (sql: SQL): Promise<void> => {
     'ingredient_units',
     'ingredients',
     'suppliers',
+    'platform_admins',
     'user_merchants',
     'merchants',
     'users',
