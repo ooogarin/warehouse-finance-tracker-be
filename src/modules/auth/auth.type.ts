@@ -1,10 +1,12 @@
 import type { z } from 'zod';
 import type { UserRole } from '@/shared/constants/roles.constant';
-import type { changePasswordSchema, loginSchema, updateProfileSchema } from './auth.schema';
+import type { changePasswordSchema, loginSchema, registerSchema, updateProfileSchema } from './auth.schema';
 
 // ----------------------------------------------------------------------------------------------------
 // Request contracts
 // ----------------------------------------------------------------------------------------------------
+
+export type CreateUserRequest = z.infer<typeof registerSchema>;
 
 export type LoginUserRequest = z.infer<typeof loginSchema>;
 
@@ -33,6 +35,16 @@ export type UserMap = {
   id: string;
   email: string;
   name: string;
+  role: UserRole;
+  phone?: string | null;
+};
+
+// ----------------------------------------------------------------------------------------------------
+export type UserInsertPayload = {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
   role: UserRole;
   phone?: string | null;
 };

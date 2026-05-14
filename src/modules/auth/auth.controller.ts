@@ -2,7 +2,22 @@ import { successResponse } from '@/core/http/response';
 import { getBody } from '@/shared/utils/hono.util';
 import * as authService from './auth.service';
 import type { AppContext } from '@/shared/types/context.types';
-import type { ChangePasswordRequest, LoginUserRequest, UpdateUserRequest } from './auth.type';
+import type { ChangePasswordRequest, CreateUserRequest, LoginUserRequest, UpdateUserRequest } from './auth.type';
+
+// Register user
+// POST /auth/register
+export const register = async (c: AppContext) => {
+  const data = getBody<CreateUserRequest>(c);
+
+  const result = await authService.register(data);
+
+  return successResponse({
+    context: c,
+    data: result,
+    message: 'Register successful',
+    statusCode: 201,
+  });
+};
 
 // Login user
 // POST /auth/login

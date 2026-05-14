@@ -1,12 +1,71 @@
 import { logger } from '@/core/config/logger.config';
 import { commitTransaction, rollbackTransaction, startTransaction } from '@/core/db/client';
-import { internalError, isAppError, notFoundError, unauthorizedError } from '@/core/errors/app-error';
+import { conflictError, internalError, isAppError, notFoundError, unauthorizedError } from '@/core/errors/app-error';
 import { APP_ERROR_MESSAGES } from '@/shared/constants/messages.constant';
-import { hashPassword, verifyPassword } from '@/shared/utils/crypto.util';
+import { USER_ROLES } from '@/shared/constants/roles.constant';
+import { generateUUID, hashPassword, verifyPassword } from '@/shared/utils/crypto.util';
 import { generateToken } from '@/shared/utils/jwt.util';
 import * as authRepository from './auth.repository';
 import type { ReservedSQL } from '@/core/db/client';
-import type { ChangePasswordRequest, GetUserRequest, LoginUserRequest, UpdateUserRequest, UserMap, UserRow } from './auth.type';
+import type {
+  ChangePasswordRequest,
+  CreateUserRequest,
+  GetUserRequest,
+  LoginUserRequest,
+  UpdateUserRequest,
+  UserMap,
+  UserRow,
+} from './auth.type';
+
+// Register user
+export const register = async (data: CreateUserRequest) => {
+  let connection: ReservedSQL | null = null;
+
+  try {
+    const isEmailExists = await authRepository.existsByEmail(data.email);
+    if (isEmailExists) {
+      throw conflictError(APP_ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
+    }
+
+    const hashedPassword = await hashPassword(data.password);
+
+    connection = await startTransaction();
+
+    const user = await authRepository.insert(connection, {
+      id: generateUUID(),
+      name: data.name,
+      email: data.email,
+      password: hashedPassword,
+      role: USER_ROLES.OWNER,
+      phone: data.phone ?? null,
+    });
+
+    await commitTransaction(connection);
+
+    const accessToken = await generateToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    logger.info({ userId: user.id }, 'User registered successfully');
+
+    return {
+      access_token: accessToken,
+      user: toUserMap(user),
+    };
+  } catch (error) {
+    if (connection) {
+      await rollbackTransaction(connection);
+    }
+
+    logger.error({ error, email: data.email }, 'Failed to register user');
+    if (isAppError(error)) {
+      throw error;
+    }
+    throw internalError('Failed to register user');
+  }
+};
 
 // Login user
 export const login = async (data: LoginUserRequest) => {

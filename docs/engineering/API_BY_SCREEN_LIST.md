@@ -56,7 +56,7 @@ Related account APIs:
 
 | Screen | Frontend Route | Backend API | Status |
 |---|---|---|---|
-| SCR-ONB-01 Register | `/register` | No public backend API. Account and merchant setup are provisioned through internal platform admin flow. | PLANNED |
+| SCR-ONB-01 Register | `/register` | `POST /auth/register` | IMPLEMENTED |
 | SCR-ONB-02 Setup Merchant | `/onboarding/merchant` | Included in completion payload | IMPLEMENTED |
 | SCR-ONB-03 Opening Balance | `/onboarding/merchant/balance` | Included in completion payload | IMPLEMENTED |
 | SCR-ONB-04 First Supplier | `/onboarding/merchant/supplier` | Included in completion payload | IMPLEMENTED |
@@ -65,6 +65,7 @@ Required onboarding APIs:
 
 | Endpoint | Status | Notes |
 |---|---|---|
+| `POST /auth/register` | IMPLEMENTED | Public account creation for MVP user acquisition. |
 | `GET /v1/onboarding/status` | IMPLEMENTED | Check whether user already has merchant. |
 | `POST /v1/onboarding/complete` | IMPLEMENTED | Single payload, single transaction (`merchants`, `user_merchants`, optional `cash_logs`, optional `suppliers`). |
 
