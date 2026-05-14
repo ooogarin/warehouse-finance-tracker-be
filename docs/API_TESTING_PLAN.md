@@ -37,6 +37,13 @@
 
 ## 3. Auth API
 
+- [ ] `POST /auth/register`
+  - [ ] Register berhasil dengan payload valid.
+  - [ ] Otomatis mengembalikan `access_token`.
+  - [ ] User baru bisa lanjut akses endpoint authenticated setelah register.
+  - [ ] Gagal jika email sudah terdaftar.
+  - [ ] Gagal jika format email invalid.
+  - [ ] Gagal jika password kurang dari 8 karakter.
 - [ ] `POST /auth/login`
   - [ ] Login berhasil dengan credential valid.
   - [ ] Gagal dengan password salah.
